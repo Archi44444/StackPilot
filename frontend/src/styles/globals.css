@@ -1,0 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-base: 5 5 10;
+  --bg-surface: 13 13 20;
+  --bg-elevated: 19 19 30;
+  --bg-border: 30 30 46;
+  --brand-from: #7c3aed;
+  --brand-to: #a855f7;
+  --brand-glow: rgb(124 58 237 / 35%);
+  --accent-cyan: #22d3ee;
+  --accent-emerald: #10b981;
+  --text-primary: 244 244 255;
+  --text-secondary: 153 153 187;
+  --text-muted: 85 85 106;
+  --glass-bg: rgb(13 13 20 / 65%);
+  --glass-border: rgb(124 58 237 / 18%);
+  color: rgb(var(--text-primary));
+  background: rgb(var(--bg-base));
+  font-family: Inter, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+  background: rgb(var(--bg-base));
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: rgb(var(--bg-base));
+}
+
+html[data-theme='light'] {
+  --bg-base: 248 250 252;
+  --bg-surface: 255 255 255;
+  --bg-elevated: 241 245 249;
+  --bg-border: 203 213 225;
+  --text-primary: 15 23 42;
+  --text-secondary: 71 85 105;
+  --text-muted: 100 116 139;
+  --glass-bg: rgb(255 255 255 / 75%);
+  --glass-border: rgb(124 58 237 / 24%);
+  color-scheme: light;
+}
+
+/* Keep existing Tailwind utility classes theme-aware, including opacity variants
+   generated before the runtime setting is applied. */
+html[data-theme='light'] .bg-base,
+html[data-theme='light'] [class*='bg-base/'] {
+  background-color: rgb(var(--bg-base)) !important;
+}
+
+html[data-theme='light'] .bg-surface,
+html[data-theme='light'] [class*='bg-surface/'] {
+  background-color: rgb(var(--bg-surface)) !important;
+}
+
+html[data-theme='light'] .bg-elevated,
+html[data-theme='light'] [class*='bg-elevated/'] {
+  background-color: rgb(var(--bg-elevated)) !important;
+}
+
+html[data-theme='light'] .text-text-primary {
+  color: rgb(var(--text-primary)) !important;
+}
+
+html[data-theme='light'] .text-text-secondary {
+  color: rgb(var(--text-secondary)) !important;
+}
+
+html[data-theme='light'] .text-text-muted {
+  color: rgb(var(--text-muted)) !important;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--brand-to);
+  outline-offset: 3px;
+}
+
+code,
+pre {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+@layer components {
+  .glass-panel {
+    @apply border border-white/[0.07] bg-surface/80 backdrop-blur-xl;
+  }
+
+  .page-title {
+    @apply text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,25 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+.vite/
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+service-account*.json
+firebase-adminsdk-*.json
+
+# Runtime files
+backend/uploads/*
+!backend/uploads/.gitkeep
+*.log
+logs/
+
+# Tooling and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
