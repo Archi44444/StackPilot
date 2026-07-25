@@ -37,6 +37,7 @@ export const streamChat = asyncHandler(async (request, response) => {
   const messages = await getRecentMessages(uid, conversationId);
   
   let instructions = buildInstructions(mode);
+  let relevantChunks = [];
   if (documentId) {
     const document = await getDocument(uid, documentId);
     if (!document) {
@@ -49,9 +50,9 @@ export const streamChat = asyncHandler(async (request, response) => {
     instructions += `\n\nThe user attached the document "${document.filename}". Use the extracted text below to answer their request. Do not say that you cannot access the document. If the answer is not in this text, say so clearly.\n\n--- Attached document text ---\n${attachment}\n--- End attached document text ---`;
   }
   try {
-    const relevantChunks = await retrieveRelevantChunks(uid, message);
+    relevantChunks = await retrieveRelevantChunks(uid, message);
     if (relevantChunks && relevantChunks.length > 0) {
-      instructions += '\n\nAdditional Context from uploaded documents:\n' + relevantChunks.map(c => `- ${c}`).join('\n');
+      instructions += '\n\nGrounding context. Cite the source title when you use it:\n' + relevantChunks.map(({ content, source }) => `- [${source.title}] ${content}`).join('\n');
     }
   } catch (err) {
     logger.error('Error retrieving chunks', { error: err.message });
@@ -79,6 +80,7 @@ export const streamChat = asyncHandler(async (request, response) => {
       content: assistantContent,
       model,
     });
+    writeEvent(response, 'sources', { sources: [...new Map((relevantChunks || []).map(({ source }) => [source.id, source])).values()] });
     writeEvent(response, 'done', { conversationId, messageId });
   } catch (error) {
     logger.error('AI streaming failed', { requestId: request.id, uid, conversationId, error: error.message, stack: error.stack });

@@ -1,4 +1,20 @@
 import { z } from 'zod';
+import { readFileSync } from 'node:fs';
+
+function recoverMultilinePrivateKey() {
+  const configured = process.env.FIREBASE_PRIVATE_KEY;
+  if (configured?.includes('END PRIVATE KEY')) return configured;
+
+  try {
+    const dotenv = readFileSync(new URL('../.env', import.meta.url), 'utf8');
+    const match = dotenv.match(/^FIREBASE_PRIVATE_KEY=(.*?)(?=^[A-Z][A-Z0-9_]*=|(?![\s\S]))/ms);
+    if (!match) return configured;
+    const value = match[1].trim().replace(/^"|"$/g, '');
+    return value.replace(/\r?\n/g, '\\n');
+  } catch {
+    return configured;
+  }
+}
 
 const parseCsv = (value, fallback) => (value ?? fallback)
   .split(',')
@@ -21,9 +37,12 @@ const rawSchema = z.object({
   GEMINI_API_KEY: z.string().min(1).optional(),
   OPENROUTER_API_KEY: z.string().min(1).optional(),
   OPENROUTER_MODEL: z.string().min(1).optional(),
+  GITHUB_TOKEN: z.string().min(1).optional(),
+  JINA_API_KEY: z.string().min(1).optional(),
+  CHROMA_URL: z.string().url().optional(),
 });
 
-const raw = rawSchema.parse(process.env);
+const raw = rawSchema.parse({ ...process.env, FIREBASE_PRIVATE_KEY: recoverMultilinePrivateKey() });
 
 export const env = Object.freeze({
   nodeEnv: raw.NODE_ENV,
@@ -45,4 +64,7 @@ export const env = Object.freeze({
     openRouterApiKey: raw.OPENROUTER_API_KEY,
     openRouterModel: raw.OPENROUTER_MODEL,
   },
+  githubToken: raw.GITHUB_TOKEN,
+  jinaApiKey: raw.JINA_API_KEY,
+  chromaUrl: raw.CHROMA_URL,
 });

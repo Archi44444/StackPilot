@@ -1,4 +1,4 @@
-import { BookOpen, ChevronLeft, FileText, LayoutDashboard, MessageSquarePlus, PanelLeftClose, PanelLeftOpen, Settings, Sparkles } from 'lucide-react';
+import { BookOpen, ChevronLeft, FileText, Github, LayoutDashboard, MessageSquarePlus, PanelLeftClose, PanelLeftOpen, Settings, Sparkles } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '../../utils/cn.js';
 import { Logo } from './Logo.jsx';
@@ -9,6 +9,7 @@ const navItems = [
   { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { to: '/chat', label: 'New chat', icon: MessageSquarePlus },
   { to: '/documents', label: 'Documents', icon: FileText },
+  { to: '/knowledge', label: 'Import knowledge', icon: Github },
   { to: '/prompts', label: 'Prompt library', icon: BookOpen },
 ];
 

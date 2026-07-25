@@ -36,5 +36,26 @@ service cloud.firestore {
       allow update: if ownsExisting() && ownsIncoming() && request.resource.data.uid == resource.data.uid;
       allow delete: if ownsExisting();
     }
+
+    match /repositories/{id} {
+      allow read, delete: if ownsExisting();
+      allow create: if ownsIncoming();
+      allow update: if ownsExisting() && ownsIncoming() && request.resource.data.uid == resource.data.uid;
+    }
+    match /documentation/{id} {
+      allow read, delete: if ownsExisting();
+      allow create: if ownsIncoming();
+      allow update: if ownsExisting() && ownsIncoming() && request.resource.data.uid == resource.data.uid;
+    }
+    match /activity/{id} {
+      allow read, delete: if ownsExisting();
+      allow create: if ownsIncoming();
+      allow update: if ownsExisting() && ownsIncoming() && request.resource.data.uid == resource.data.uid;
+    }
+    match /analytics/{id} {
+      allow read, delete: if ownsExisting();
+      allow create: if ownsIncoming();
+      allow update: if ownsExisting() && ownsIncoming() && request.resource.data.uid == resource.data.uid;
+    }
   }
 }

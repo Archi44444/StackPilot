@@ -11,6 +11,7 @@ import { chatRouter } from './routes/chatRoutes.js';
 import { documentRouter } from './routes/documentRoutes.js';
 import { promptRouter } from './routes/promptRoutes.js';
 import { settingsRouter } from './routes/settingsRoutes.js';
+import { knowledgeRouter } from './routes/knowledgeRoutes.js';
 import { AppError } from './utils/AppError.js';
 import { logger } from './utils/logger.js';
 
@@ -50,8 +51,11 @@ export function createApp() {
   api.use('/auth', authRouter);
   api.use('/chat', chatRouter);
   api.use('/documents', documentRouter);
+  // Backwards-compatible direct upload endpoint for API clients.
+  api.use('/upload', documentRouter);
   api.use('/prompts', promptRouter);
   api.use('/settings', settingsRouter);
+  api.use('/', knowledgeRouter);
   app.use('/api/v1', api);
 
   app.use(notFoundHandler);

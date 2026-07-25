@@ -9,6 +9,7 @@ import { useMessages } from '../hooks/useMessages.js';
 import { streamChat } from '../services/chatService.js';
 import { getSettings } from '../services/settingsService.js';
 import { uploadDocument } from '../services/documentService.js';
+import { searchStackOverflow } from '../services/knowledgeService.js';
 
 const MODEL_OPTIONS = [
   { value: 'gemini-flash-latest', label: 'Gemini Flash', provider: 'gemini' },
@@ -37,6 +38,13 @@ export function Chat() {
   const [selectedModel, setSelectedModel] = useState('gemini-flash-latest');
   const [selectedTemperature, setSelectedTemperature] = useState(0.3);
   const [showModelPicker, setShowModelPicker] = useState(false);
+  const [includeStackOverflow, setIncludeStackOverflow] = useState(false);
+  const [sources, setSources] = useState([]);
+  const [stackAnswers, setStackAnswers] = useState([]);
+  const [stackStatus, setStackStatus] = useState('idle');
+  const [stackError, setStackError] = useState('');
+  const completedConversationRef = useRef(null);
+  const pendingSourcesRef = useRef([]);
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
   const modelRef = useRef(null);
@@ -63,6 +71,17 @@ export function Chat() {
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, streamedContent]);
 
+  useEffect(() => {
+    if (!conversationId) return;
+    const saved = sessionStorage.getItem(`stackpilot:sources:${conversationId}`);
+    if (!saved) return;
+    try {
+      const { sources: savedSources, stackAnswers: savedAnswers } = JSON.parse(saved);
+      setSources(savedSources || []);
+      setStackAnswers(savedAnswers || []);
+    } catch { /* Ignore stale session data. */ }
+  }, [conversationId]);
+
   const handleFileSelect = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -87,12 +106,29 @@ export function Chat() {
     setError(null);
     setStreamedContent('');
     setIsStreaming(true);
+    setStackAnswers([]);
+    setStackError('');
+    setStackStatus(includeStackOverflow ? 'loading' : 'idle');
     try {
+      const stackPromise = includeStackOverflow ? searchStackOverflow(message) : Promise.resolve([]);
+      let nextConversationId = conversationId;
       await streamChat({ conversationId, message, mode: 'chat', model: selectedModel, temperature: selectedTemperature, documentId: attachedDocument?.id }, {
         onToken: ({ content }) => setStreamedContent((current) => current + content),
-        onDone: ({ conversationId: nextConversationId }) => { if (nextConversationId && nextConversationId !== conversationId) navigate(`/chat/${nextConversationId}`, { replace: true }); },
+        onDone: ({ conversationId: returnedConversationId }) => { nextConversationId = returnedConversationId || conversationId; completedConversationRef.current = nextConversationId; },
         onError: (eventError) => setError(eventError.message ?? 'Unable to complete this response.'),
+        onSources: ({ sources: nextSources }) => { pendingSourcesRef.current = nextSources || []; setSources(nextSources || []); },
       });
+      let nextStackAnswers = [];
+      try {
+        nextStackAnswers = await stackPromise;
+        if (includeStackOverflow) setStackStatus(nextStackAnswers.length ? 'complete' : 'empty');
+      } catch (lookupError) {
+        setStackStatus('error');
+        setStackError(lookupError.response?.data?.error?.message || 'Stack Overflow lookup failed. Please try again.');
+      }
+      setStackAnswers(nextStackAnswers);
+      if (nextConversationId) sessionStorage.setItem(`stackpilot:sources:${nextConversationId}`, JSON.stringify({ sources: pendingSourcesRef.current, stackAnswers: nextStackAnswers }));
+      if (nextConversationId && nextConversationId !== conversationId) navigate(`/chat/${nextConversationId}`, { replace: true });
       setAttachedDocument(null);
     } catch (nextError) {
       setError(nextError.message);
@@ -189,6 +225,7 @@ export function Chat() {
           <ChatMessage key={message.id} role={message.role} content={message.content} />
         ))}
         {isStreaming && <ChatMessage role="assistant" content={streamedContent} streaming />}
+        {(sources.length > 0 || stackAnswers.length > 0 || stackStatus === 'loading' || stackStatus === 'empty' || stackStatus === 'error') && <GlowCard className="border-brand/15"><h3 className="text-sm font-semibold">Sources used</h3><div className="mt-3 space-y-2">{sources.map((source) => <a key={source.id} href={source.url || '#'} target={source.url ? '_blank' : undefined} rel="noreferrer" className="block rounded-lg bg-base/50 px-3 py-2 text-sm text-text-secondary hover:text-brand-light">{source.type} · {source.title}</a>)}{stackStatus === 'loading' && <p className="rounded-lg bg-base/50 px-3 py-2 text-sm text-text-secondary">Searching Stack Overflow…</p>}{stackStatus === 'empty' && <p className="rounded-lg bg-base/50 px-3 py-2 text-sm text-text-secondary">No Stack Overflow matches found for this question.</p>}{stackStatus === 'error' && <p className="rounded-lg border border-red-400/20 bg-red-400/10 px-3 py-2 text-sm text-red-200">{stackError}</p>}{stackAnswers.map((answer) => <a key={answer.link} href={answer.link} target="_blank" rel="noreferrer" className="block rounded-lg border border-white/[.07] bg-base/50 p-3 text-sm"><div className="flex gap-2"><span className="rounded bg-accent-emerald/15 px-1.5 py-0.5 text-xs text-accent-emerald">{answer.accepted ? 'Accepted' : `${answer.score} votes`}</span><span className="line-clamp-1 text-text-primary">{answer.title}</span></div><p className="mt-1 line-clamp-2 text-xs text-text-secondary">{answer.excerpt}</p></a>)}</div></GlowCard>}
         <div ref={bottomRef} />
       </div>
 
@@ -229,6 +266,7 @@ export function Chat() {
           </Button>
         </form>
         {attachedDocument && <p className="px-2 pt-1 text-xs text-brand-light">Attached document: {attachedDocument.filename}</p>}
+        <label className="flex cursor-pointer items-center gap-2 px-2 pt-2 text-xs text-text-secondary"><input type="checkbox" checked={includeStackOverflow} onChange={(event) => setIncludeStackOverflow(event.target.checked)} /> Include Stack Overflow results {includeStackOverflow && <span className="text-accent-emerald">Enabled</span>}</label>
         <p className="px-2 pb-1 text-xs text-text-muted">
           Responses can make mistakes. Review generated code before using it.
         </p>

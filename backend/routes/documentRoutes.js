@@ -9,5 +9,6 @@ export const documentRouter = Router();
 
 documentRouter.use(requireAuth);
 documentRouter.post('/upload', upload.single('file'), uploadDocument);
+documentRouter.post('/', upload.single('file'), uploadDocument);
 documentRouter.get('/', validateRequest(paginationRequestSchema), listDocuments);
 documentRouter.delete('/:id', validateRequest(resourceIdRequestSchema), deleteDocument);

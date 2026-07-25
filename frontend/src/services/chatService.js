@@ -5,7 +5,7 @@ export const getConversationHistory = (params) => api.get('/chat/history', { par
 export const getMessages = (conversationId, params) => api.get(`/chat/${conversationId}/messages`, { params }).then((response) => response.data.data);
 export const deleteConversation = (conversationId) => api.delete(`/chat/${conversationId}`);
 
-export async function streamChat(payload, { onToken, onDone, onError }) {
+export async function streamChat(payload, { onToken, onDone, onError, onSources }) {
   const token = await getIdToken();
   const response = await fetch(`${api.defaults.baseURL}/chat`, {
     method: 'POST',
@@ -27,6 +27,7 @@ export async function streamChat(payload, { onToken, onDone, onError }) {
     const payloadData = JSON.parse(data);
     if (event === 'token') onToken?.(payloadData);
     if (event === 'done') onDone?.(payloadData);
+    if (event === 'sources') onSources?.(payloadData);
     if (event === 'error') onError?.(payloadData);
   };
 

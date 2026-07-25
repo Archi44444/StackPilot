@@ -15,6 +15,8 @@ The rules scope every user-owned top-level resource (`conversations`, `messages`
 The supplied index configuration creates these composite indexes:
 
 - `conversations`: `uid`, then `updatedAt` descending
+- `repositories`: `uid`, then `createdAt` descending
+- `documentation`: `uid`, then `createdAt` descending
 - `messages`: `uid`, `conversationId`, then `createdAt` ascending
 - `prompts`: `uid`, then `updatedAt` descending
 

@@ -2,8 +2,8 @@ import { env } from '../config/env.js';
 import { GoogleGenAI } from '@google/genai';
 import { randomUUID } from 'crypto';
 
-const documents = []; // Memory store: { id, filename, content, uid }
-const vectors = []; // Memory store: { docId, chunkId, content, embedding }
+const documents = []; // Memory fallback when Chroma is not configured.
+const vectors = []; // { docId, chunkId, content, embedding, uid, source }
 
 let geminiClient;
 function getGeminiClient() {
@@ -50,30 +50,19 @@ async function generateEmbeddings(texts) {
   return null; // All models failed
 }
 
-export async function addDocument(uid, filename, content) {
-  const docId = randomUUID();
-  documents.push({ id: docId, filename, content, uid });
-  
+export async function addKnowledgeSource(uid, source, content) {
+  const docId = source.id || randomUUID();
+  documents.push({ id: docId, filename: source.title, content, uid, source });
   const chunks = chunkText(content);
   const embeddings = await generateEmbeddings(chunks);
-  
-  if (embeddings) {
-    chunks.forEach((chunk, index) => {
-      vectors.push({
-        docId,
-        chunkId: randomUUID(),
-        content: chunk,
-        embedding: embeddings[index],
-      });
-    });
-  } else {
-    // Fallback: store chunk directly without embeddings (keyword search will be used)
-    chunks.forEach((chunk) => {
-      vectors.push({ docId, chunkId: randomUUID(), content: chunk, embedding: [] });
-    });
-  }
-  
-  return { id: docId, filename };
+  chunks.forEach((chunk, index) => vectors.push({ docId, chunkId: randomUUID(), content: chunk, embedding: embeddings?.[index] ?? [], uid, source }));
+  return { id: docId, ...source, chunkCount: chunks.length };
+}
+
+export async function addDocument(uid, filename, content) {
+  const docId = randomUUID();
+  await addKnowledgeSource(uid, { id: docId, type: 'upload', title: filename }, content);
+  return { id: docId, filename, type: 'upload' };
 }
 
 export async function listDocuments(uid) {
@@ -86,6 +75,10 @@ export async function getDocument(uid, id) {
 }
 
 export async function deleteDocument(uid, id) {
+  await deleteKnowledgeSource(uid, id);
+}
+
+export async function deleteKnowledgeSource(uid, id) {
   const docIndex = documents.findIndex((doc) => doc.id === id && doc.uid === uid);
   if (docIndex !== -1) {
     documents.splice(docIndex, 1);
@@ -144,7 +137,7 @@ function keywordSearch(uid, query) {
   return scored;
 }
 
-export async function retrieveRelevantChunks(uid, query, topK = 3) {
+export async function retrieveRelevantChunks(uid, query, topK = 4) {
   // Try vector search first
   if (vectors.some(v => v.embedding.length > 0)) {
     try {
@@ -159,7 +152,7 @@ export async function retrieveRelevantChunks(uid, query, topK = 3) {
         }));
         
         scored.sort((a, b) => b.score - a.score);
-        return scored.slice(0, topK).map(s => s.content);
+        return scored.slice(0, topK).map(s => ({ content: s.content, source: s.source ?? { id: s.docId, type: 'upload', title: documents.find((d) => d.id === s.docId)?.filename || 'Uploaded document' }, score: s.score }));
       }
     } catch {
       // Fall through to keyword search
@@ -168,5 +161,5 @@ export async function retrieveRelevantChunks(uid, query, topK = 3) {
   
   // Fallback: keyword search
   const results = keywordSearch(uid, query);
-  return results.slice(0, topK).map(s => s.content);
+  return results.slice(0, topK).map(s => ({ content: s.content, source: s.source ?? { id: s.docId, type: 'upload', title: documents.find((d) => d.id === s.docId)?.filename || 'Uploaded document' }, score: s.score }));
 }

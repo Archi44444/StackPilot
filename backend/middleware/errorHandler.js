@@ -1,6 +1,7 @@
 import { ZodError } from 'zod';
 import { AppError } from '../utils/AppError.js';
 import { logger } from '../utils/logger.js';
+import { env } from '../config/env.js';
 
 export function notFoundHandler(request, _response, next) {
   next(new AppError(`Route ${request.method} ${request.originalUrl} was not found.`, {
@@ -24,7 +25,7 @@ export function errorHandler(error, request, response, _next) {
       code: error.code === 'LIMIT_FILE_SIZE' ? 'FILE_TOO_LARGE' : 'UPLOAD_ERROR',
     });
   } else if (!(error instanceof AppError)) {
-    normalized = new AppError('An unexpected error occurred.');
+    normalized = new AppError(env.nodeEnv === 'production' ? 'An unexpected error occurred.' : (error?.message || 'An unexpected error occurred.'));
   }
 
   const logContext = {
@@ -39,7 +40,7 @@ export function errorHandler(error, request, response, _next) {
   const payload = {
     error: {
       code: normalized.code,
-      message: normalized.statusCode >= 500 ? 'Internal server error.' : normalized.message,
+      message: normalized.statusCode >= 500 && env.nodeEnv === 'production' ? 'Internal server error.' : normalized.message,
       requestId: request.id,
     },
   };

@@ -26,6 +26,13 @@ export const requireAuth = asyncHandler(async (request, _response, next) => {
       reason: error?.message,
       firebaseCode: error?.code,
     });
-    throw new AppError('The Firebase ID token is invalid or expired.', { statusCode: 401, code: 'UNAUTHENTICATED' });
+    const reason = error?.code === 'auth/id-token-expired'
+      ? 'Your Firebase session has expired. Please sign in again.'
+      : error?.code === 'app/invalid-credential'
+        ? 'Firebase Admin credentials are invalid. Replace all Firebase Admin values in backend/.env from one service-account JSON file.'
+        : error?.code === 'auth/invalid-id-token'
+          ? 'The browser Firebase project does not match the backend Firebase Admin project.'
+          : `Firebase Admin could not validate the ID token: ${String(error?.message || error?.code || 'unknown verification error').slice(0, 280)}`;
+    throw new AppError(reason, { statusCode: 401, code: 'UNAUTHENTICATED' });
   }
 });

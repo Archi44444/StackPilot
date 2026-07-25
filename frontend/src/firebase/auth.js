@@ -59,5 +59,7 @@ const messages = {
 export function getAuthErrorMessage(error) {
   if (error?.message === firebaseConfigurationMessage) return error.message;
   console.error('[Auth Error]', error?.code, error?.message, error);
+  const apiError = error?.response?.data?.error;
+  if (apiError?.message) return apiError.message;
   return messages[error?.code] ?? `Error: ${error?.code ?? error?.message ?? 'Unknown error. Check browser console for details.'}`;
 }

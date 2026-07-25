@@ -68,3 +68,16 @@ export const messagesRequestSchema = z.object({
     cursor: z.string().min(1).max(512).optional(),
   }).strict(),
 });
+
+export const importRepositoryRequestSchema = z.object({
+  body: z.object({ url: z.string().url().max(2048) }).strict(), params: emptyObject, query: emptyObject,
+});
+
+export const importDocumentationRequestSchema = z.object({
+  body: z.object({ url: z.string().url().max(2048) }).strict(), params: emptyObject, query: emptyObject,
+});
+
+export const stackOverflowSearchRequestSchema = z.object({
+  body: emptyObject, params: emptyObject,
+  query: z.object({ q: z.string().trim().min(2).max(500), limit: z.coerce.number().int().min(1).max(10).default(5) }).strict(),
+});

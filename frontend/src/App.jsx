@@ -11,6 +11,7 @@ import { NotFound } from './pages/NotFound.jsx';
 import { Prompts } from './pages/Prompts.jsx';
 import { Register } from './pages/Register.jsx';
 import { Settings } from './pages/Settings.jsx';
+import { Knowledge } from './pages/Knowledge.jsx';
 import { useAuth } from './hooks/useAuth.js';
 import { getSettings } from './services/settingsService.js';
 
@@ -36,7 +37,7 @@ export default function App() {
   return <><ThemeSync /><Routes>
     <Route path="/" element={<Landing />} />
     <Route element={<AuthLayout />}><Route path="/login" element={<Login />} /><Route path="/register" element={<Register />} /></Route>
-    <Route element={<ProtectedRoute />}><Route element={<AppLayout />}><Route path="/dashboard" element={<Dashboard />} /><Route path="/chat/:conversationId?" element={<Suspense fallback={chatFallback}><Chat /></Suspense>} /><Route path="/documents" element={<Documents />} /><Route path="/prompts" element={<Prompts />} /><Route path="/settings" element={<Settings />} /></Route></Route>
+    <Route element={<ProtectedRoute />}><Route element={<AppLayout />}><Route path="/dashboard" element={<Dashboard />} /><Route path="/chat/:conversationId?" element={<Suspense fallback={chatFallback}><Chat /></Suspense>} /><Route path="/documents" element={<Documents />} /><Route path="/knowledge" element={<Knowledge />} /><Route path="/prompts" element={<Prompts />} /><Route path="/settings" element={<Settings />} /></Route></Route>
     <Route path="*" element={<NotFound />} />
   </Routes></>;
 }
