@@ -1,121 +1,671 @@
-# StackPilot
+# 🚀 StackPilot
+### AI-Powered Developer Copilot with Retrieval-Augmented Generation (RAG)
 
-StackPilot is a web application for authenticated, AI-assisted developer conversations. It pairs a React client with an Express API, Firebase Authentication/Firestore, and either Gemini or OpenRouter for streamed responses.
+StackPilot is a full-stack AI developer assistant that enables developers to chat with GitHub repositories, technical documentation, PDFs, Markdown files, and codebases using Retrieval-Augmented Generation (RAG).
 
-## What is implemented
+The platform combines semantic search, vector embeddings, repository indexing, documentation ingestion, and LLM-powered reasoning to provide accurate, context-aware coding assistance with verifiable source citations.
 
-- Email/password and Google sign-in through Firebase Authentication.
-- Streaming chat responses over Server-Sent Events (SSE).
-- Conversation and message history stored in Firestore for the signed-in user.
-- Chat modes for tasks such as debugging, explaining, refactoring, and testing.
-- Saved prompts and per-user chat settings.
-- PDF, DOCX, Markdown, and text uploads. Extracted text can be included as chat context.
-- Gemini embeddings when available, with a keyword-search fallback.
-- Request validation, CORS allowlisting, Helmet, and API rate limiting.
+---
 
-## Important limitations
+# 🌐 Live Demo
 
-- Uploaded documents and their search index are held **in server memory**. They are removed when the API process restarts and are not stored in Firebase or ChromaDB.
-- Document upload files are temporary: the source file is deleted after text extraction.
-- Firebase is required for authenticated API routes and Firestore-backed conversations, prompts, and settings.
-- The application has not been presented here as deployed or production-ready; configure, test, and secure it for your own environment before deployment.
+Try StackPilot at: https://stack-pilot-jet.vercel.app
 
-## Stack
+---
 
-| Area | Technology |
-| --- | --- |
-| Client | React, Vite, Tailwind CSS, Firebase Web SDK |
-| API | Node.js 20+, Express |
-| Authentication & data | Firebase Authentication, Firebase Admin, Firestore |
-| AI providers | Google Gemini or OpenRouter |
-| Documents | `pdf-parse`, Mammoth, in-memory search index |
+# 🚀 Core Objectives
 
-## Run locally
+- Chat with GitHub repositories using AI
+- Import and index technical documentation
+- Upload PDFs and Markdown files for semantic search
+- Build a unified developer knowledge base
+- Provide source-cited AI responses
+- Reduce developer context switching
+- Improve onboarding for unfamiliar codebases
+- Deliver context-aware coding assistance
 
-### Prerequisites
+---
 
-- Node.js 20.11 or later
-- A Firebase project with Email/Password authentication enabled; enable Google too if you want the Google sign-in option
-- A Firebase service-account credential for the API
-- A Gemini API key or an OpenRouter API key
+# 🏗️ System Architecture
 
-### 1. Configure Firebase
+```
+React + Vite + Tailwind
+          │
+          ▼
+Firebase Authentication
+          │
+          ▼
+Node.js + Express Backend
+          │
+          ├── LangChain.js
+          ├── Gemini API
+          ├── OpenRouter API
+          ├── GitHub REST API
+          ├── Jina AI Reader
+          ├── ChromaDB
+          └── Firestore
+```
 
-1. Register a web app in Firebase and enable the desired sign-in providers.
-2. Create a service account for the backend.
-3. Add `localhost` (and any deployed client domain) to Firebase Authentication's authorized domains.
+---
 
-See [docs/FIREBASE_SETUP.md](docs/FIREBASE_SETUP.md) for the values required by the client and API.
+# 🖥️ Frontend
 
-### 2. Start the API
+Located in
 
-```bash
+```
+frontend/
+```
+
+## Tech Stack
+
+- React.js
+- Vite
+- Tailwind CSS
+- Framer Motion
+- Firebase Authentication
+- React Router
+- Axios
+
+---
+
+# ✨ Features
+
+## AI Chat
+
+Developers can ask
+
+- Explain this project
+- Explain this function
+- Find where authentication is implemented
+- Summarize this repository
+- Explain folder structure
+- Generate onboarding guide
+- Explain dependencies
+- Suggest improvements
+
+---
+
+## GitHub Repository Import
+
+Supports
+
+- Public repositories
+- README extraction
+- Folder structure analysis
+- Documentation indexing
+- Semantic repository search
+
+---
+
+## Documentation Import
+
+Import documentation websites including
+
+- React
+- Next.js
+- Express
+- Node.js
+- Tailwind CSS
+- Firebase
+- FastAPI
+- LangChain
+- Python Docs
+- Any developer documentation
+
+---
+
+## PDF Knowledge Base
+
+Upload
+
+- Technical books
+- Research papers
+- API documentation
+- User manuals
+- Notes
+
+Search using semantic retrieval.
+
+---
+
+## Prompt Library
+
+Users can
+
+- Save prompts
+- Edit prompts
+- Delete prompts
+- Organize reusable developer prompts
+
+---
+
+## Conversation History
+
+Store
+
+- Previous chats
+- AI responses
+- Source citations
+- Repository-specific conversations
+
+---
+
+# 👨‍💻 Developer Workflow
+
+```
+Login
+    │
+    ▼
+Dashboard
+    │
+    ▼
+Import Repository
+    │
+    ▼
+Index Documentation
+    │
+    ▼
+Generate Embeddings
+    │
+    ▼
+Store in ChromaDB
+    │
+    ▼
+Chat with AI
+    │
+    ▼
+Receive Source-Cited Response
+```
+
+---
+
+# ⚙️ Backend
+
+Located in
+
+```
+backend/
+```
+
+---
+
+# 🔹 Core Components
+
+## 1️⃣ GitHub Service
+
+Responsible for
+
+- Repository import
+- README extraction
+- File tree retrieval
+- Repository metadata
+- Code indexing
+
+Uses
+
+- GitHub REST API
+
+---
+
+## 2️⃣ Documentation Service
+
+Responsible for
+
+- Documentation crawling
+- Content extraction
+- Text preprocessing
+
+Uses
+
+- Jina AI Reader API
+
+---
+
+## 3️⃣ RAG Pipeline
+
+Workflow
+
+```
+User Query
+      │
+      ▼
+Vector Search
+      │
+      ▼
+Relevant Context Retrieval
+      │
+      ▼
+Prompt Construction
+      │
+      ▼
+Gemini / OpenRouter
+      │
+      ▼
+Grounded AI Response
+```
+
+---
+
+## 4️⃣ Vector Database
+
+Uses ChromaDB for
+
+- Semantic search
+- Embedding storage
+- Similarity search
+- Context retrieval
+
+---
+
+## 5️⃣ AI Service
+
+Supports
+
+- Gemini API
+- OpenRouter Models
+
+Handles
+
+- Prompt engineering
+- Context injection
+- Response formatting
+- Source citation generation
+
+---
+
+## 6️⃣ Authentication
+
+Managed using Firebase Authentication.
+
+Supports
+
+- Google Sign-In
+- Secure token verification
+- Protected API routes
+
+---
+
+# 🔐 Authentication Flow
+
+```
+User Login
+      │
+      ▼
+Firebase Authentication
+      │
+      ▼
+JWT Verification
+      │
+      ▼
+Express Middleware
+      │
+      ▼
+Protected APIs
+```
+
+---
+
+# 🧠 RAG Workflow
+
+```
+Repository
+Documentation
+PDF
+Markdown
+        │
+        ▼
+Chunking
+        │
+        ▼
+Embedding Generation
+        │
+        ▼
+ChromaDB
+        │
+        ▼
+Semantic Retrieval
+        │
+        ▼
+Gemini / OpenRouter
+        │
+        ▼
+Grounded AI Response
+```
+
+---
+
+# 🗄️ Firestore Collections
+
+```
+users/
+
+repositories/
+
+documents/
+
+conversations/
+
+messages/
+
+prompts/
+
+analytics/
+
+settings/
+```
+
+---
+
+# 📁 Project Structure
+
+```
+StackPilot/
+│
+├── backend/
+│   ├── controllers/
+│   ├── routes/
+│   ├── middleware/
+│   ├── services/
+│   │     ├── githubService.js
+│   │     ├── ragService.js
+│   │     ├── jinaService.js
+│   │     ├── embeddingService.js
+│   │     └── aiService.js
+│   ├── firebase/
+│   ├── utils/
+│   ├── config/
+│   ├── server.js
+│   └── package.json
+│
+├── frontend/
+│   ├── src/
+│   │    ├── components/
+│   │    ├── pages/
+│   │    ├── hooks/
+│   │    ├── context/
+│   │    ├── services/
+│   │    └── utils/
+│
+└── README.md
+```
+
+---
+
+# 📊 Dashboard
+
+Displays
+
+- Imported repositories
+- Indexed documentation
+- Uploaded PDFs
+- Recent conversations
+- Prompt library
+- Storage statistics
+- AI usage analytics
+
+---
+
+# 🔥 REST API
+
+## Authentication
+
+```
+POST /api/v1/auth/sync
+
+GET /api/v1/auth/profile
+```
+
+---
+
+## Repository
+
+```
+POST /api/v1/repositories/import
+
+GET /api/v1/repositories
+
+DELETE /api/v1/repositories/:id
+```
+
+---
+
+## Documentation
+
+```
+POST /api/v1/docs/import
+
+GET /api/v1/docs
+
+DELETE /api/v1/docs/:id
+```
+
+---
+
+## Upload
+
+```
+POST /api/v1/upload
+```
+
+---
+
+## AI Chat
+
+```
+POST /api/v1/chat
+```
+
+---
+
+## Analytics
+
+```
+GET /api/v1/dashboard
+
+GET /api/v1/analytics
+```
+
+---
+
+# 🛡️ Security
+
+StackPilot implements
+
+- Firebase Authentication
+- Protected routes
+- Input validation
+- Secure environment variables
+- Rate limiting
+- CORS protection
+
+---
+
+# ⚙️ Environment Variables
+
+## Backend
+
+```
+PORT=
+
+GEMINI_API_KEY=
+
+OPENROUTER_API_KEY=
+
+GITHUB_TOKEN=
+
+FIREBASE_PROJECT_ID=
+
+FIREBASE_CLIENT_EMAIL=
+
+FIREBASE_PRIVATE_KEY=
+```
+
+---
+
+## Frontend
+
+```
+VITE_FIREBASE_API_KEY=
+
+VITE_FIREBASE_AUTH_DOMAIN=
+
+VITE_FIREBASE_PROJECT_ID=
+
+VITE_FIREBASE_STORAGE_BUCKET=
+
+VITE_FIREBASE_APP_ID=
+
+VITE_BACKEND_URL=
+```
+
+---
+
+# 🛠️ Installation
+
+## Backend
+
+```
 cd backend
-cp .env.example .env
+
 npm install
+
 npm run dev
 ```
 
-On Windows PowerShell, copy the example file with:
+---
 
-```powershell
-Copy-Item .env.example .env
+## Frontend
+
 ```
-
-Set the Firebase Admin values in `backend/.env`. Then select one provider:
-
-```env
-# Gemini
-AI_PROVIDER=gemini
-GEMINI_API_KEY=your_key
-
-# or OpenRouter
-AI_PROVIDER=openrouter
-OPENROUTER_API_KEY=your_key
-OPENROUTER_MODEL=your_model_identifier
-```
-
-The API listens on `http://localhost:5000` by default. Its health check is available at `GET /health`.
-
-### 3. Start the client
-
-In a second terminal:
-
-```bash
 cd frontend
-cp .env.example .env
+
 npm install
+
 npm run dev
 ```
 
-Set the `VITE_FIREBASE_*` values in `frontend/.env` to your Firebase web-app configuration. `VITE_BACKEND_URL` defaults to `http://localhost:5000/api/v1`, which matches the local API.
+---
 
-## Environment notes
+# 🚀 Deployment
 
-- Do not commit `.env` files or Firebase service-account keys.
-- `CORS_ORIGIN` must include the client origin; locally it defaults to `http://localhost:5173`.
-- The API accepts `pdf,md,txt` by default. To accept DOCX uploads, set `ALLOWED_FILE_TYPES=pdf,md,txt,docx` in `backend/.env`.
-- The default upload limit is 20 MB and can be changed with `MAX_FILE_SIZE_MB`.
+Frontend
 
-## Available scripts
+- Vercel
 
-| Directory | Command | Purpose |
-| --- | --- | --- |
-| `backend` | `npm run dev` | Start the API with Node's watch mode |
-| `backend` | `npm start` | Start the API |
-| `backend` | `npm test` | Run Node's test suite |
-| `frontend` | `npm run dev` | Start the Vite development server |
-| `frontend` | `npm run build` | Create a production client build |
-| `frontend` | `npm run preview` | Preview a built client |
+Backend
 
-## Project layout
+- Render
 
-```text
-backend/   Express API, Firebase Admin integration, AI providers, document parsing
-frontend/  React application and Firebase client integration
-docs/      API, architecture, Firebase, Firestore, and design notes
-```
+Authentication
 
-## License
+- Firebase Authentication
 
-No license file is included in this repository. All rights are reserved unless the repository owner adds a license.
+Database
+
+- Firebase Firestore
+
+Vector Database
+
+- ChromaDB
+
+AI Models
+
+- Gemini API
+- OpenRouter API
+
+---
+
+# 🧰 Tech Stack
+
+### Frontend
+
+- React.js
+- Vite
+- Tailwind CSS
+- Framer Motion
+
+### Backend
+
+- Node.js
+- Express.js
+
+### Database
+
+- Firebase Firestore
+- ChromaDB
+
+### AI
+
+- Retrieval-Augmented Generation (RAG)
+- Gemini API
+- OpenRouter API
+- Vector Embeddings
+- Semantic Search
+
+### APIs
+
+- GitHub REST API
+- Jina AI Reader API
+
+### Authentication
+
+- Firebase Authentication
+
+### Tools
+
+- Git
+- GitHub
+- Postman
+- Vercel
+- Render
+
+---
+
+# 📈 Future Improvements
+
+- Private GitHub repository support
+- GitHub OAuth
+- VS Code Extension
+- Multi-repository chat
+- Repository dependency graphs
+- Code execution sandbox
+- Team workspaces
+- Model benchmarking
+- AI code review
+- Pull request summarization
+
+---
+
+# 🎯 Vision
+
+StackPilot aims to become an AI-native developer workspace where engineers can interact with repositories, documentation, and technical resources through natural language while receiving accurate, grounded, and source-cited responses.
+
+---
+
+# 📜 License
+
+MIT License
+
+---
+
+# ⚠️ Disclaimer
+
+StackPilot is intended as an AI-assisted developer productivity tool. AI-generated responses should be reviewed and verified before use in production environments.
+
+---
+
+# ⭐ Final Thought
+
+StackPilot demonstrates
+
+- Full-Stack Web Development
+- Retrieval-Augmented Generation (RAG)
+- Vector Database Design
+- Semantic Search
+- GitHub API Integration
+- Documentation Indexing
+- LLM Integration
+- Firebase Authentication
+- Modern SaaS Architecture
+- Production-ready REST API Design
+- AI-Powered Developer Tooling
