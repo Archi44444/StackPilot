@@ -72,13 +72,26 @@ export function Chat() {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, streamedContent]);
 
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId) {
+      setSources([]);
+      setStackAnswers([]);
+      setStackStatus('idle');
+      setAttachedDocument(null);
+      setError(null);
+      return;
+    }
     const saved = sessionStorage.getItem(`stackpilot:sources:${conversationId}`);
-    if (!saved) return;
+    if (!saved) {
+      setSources([]);
+      setStackAnswers([]);
+      setStackStatus('idle');
+      return;
+    }
     try {
       const { sources: savedSources, stackAnswers: savedAnswers } = JSON.parse(saved);
       setSources(savedSources || []);
       setStackAnswers(savedAnswers || []);
+      setStackStatus(savedAnswers && savedAnswers.length > 0 ? 'complete' : 'idle');
     } catch { /* Ignore stale session data. */ }
   }, [conversationId]);
 

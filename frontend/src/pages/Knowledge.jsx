@@ -4,10 +4,165 @@ import { Button } from '../components/ui/Button.jsx';
 import { GlowCard } from '../components/ui/GlowCard.jsx';
 import { deleteDocumentation, deleteRepository, importDocumentation, importRepository, listDocumentation, listRepositories } from '../services/knowledgeService.js';
 
-function SourceSection({ icon: Icon, title, hint, placeholder, items, busy, onImport, onDelete }) {
-  const [url, setUrl] = useState(''); const [error, setError] = useState(''); const [success, setSuccess] = useState('');
-  const submit = async (e) => { e.preventDefault(); setError(''); setSuccess(''); try { const source = await onImport(url); setUrl(''); setSuccess(`${source.fullName || source.title || title} is indexed and ready to use in Chat.`); } catch (err) { setError(err.response?.data?.error?.message || err.message); } };
-  return <GlowCard><div className="flex items-start gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand/15 text-brand-light"><Icon size={20} /></span><div><h2 className="font-semibold">{title}</h2><p className="mt-1 text-sm text-text-secondary">{hint}</p></div></div><form onSubmit={submit} className="mt-5 flex gap-2"><input value={url} onChange={(e) => setUrl(e.target.value)} type="url" required placeholder={placeholder} className="min-w-0 flex-1 rounded-lg border border-white/10 bg-base/60 px-3 py-2 text-sm outline-none focus:border-brand/60"/><Button type="submit" disabled={busy}>{busy ? <LoaderCircle size={16} className="animate-spin"/> : 'Import'}</Button></form>{error && <p className="mt-2 text-xs text-red-300">{error}</p>}{success && <p className="mt-2 text-xs text-accent-emerald">{success}</p>}<div className="mt-5 space-y-2">{items.length === 0 ? <p className="text-sm text-text-muted">Nothing imported yet.</p> : items.map((item) => <div key={item.id} className="flex items-center gap-3 rounded-lg border border-white/[.07] bg-base/40 p-3"><Icon size={16} className="shrink-0 text-text-muted"/><a href={item.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-sm hover:text-brand-light">{item.fullName || item.title}</a><Button size="sm" variant="ghost" onClick={() => onDelete(item.id)} aria-label={`Delete ${item.fullName || item.title}`}><Trash2 size={15}/></Button></div>)}</div></GlowCard>;
+function AnalysisBlock({ analysis }) {
+  if (!analysis) return null;
+  const sections = [
+    ['Repository summary', analysis.repositorySummary],
+    ['Architecture overview', analysis.architectureOverview],
+    ['Tech stack', analysis.techStack],
+    ['Dependencies', analysis.dependencies],
+    ['Folder explanation', analysis.folderExplanation],
+    ['Security issues', analysis.securityIssues],
+    ['Performance suggestions', analysis.performanceSuggestions],
+    ['Code quality report', analysis.codeQualityReport],
+    ['Complexity report', analysis.complexityReport],
+    ['Missing README sections', analysis.missingReadmeSections],
+  ];
+
+  return (
+    <div className="mt-4 grid gap-3 rounded-xl border border-brand/15 bg-brand/[0.06] p-4">
+      {sections.map(([label, value]) => (
+        <div key={label}>
+          <p className="text-[11px] uppercase tracking-[0.12em] text-text-muted">{label}</p>
+          <p className="mt-1 whitespace-pre-line text-sm leading-6 text-text-secondary">{value || 'Not available'}</p>
+        </div>
+      ))}
+    </div>
+  );
 }
 
-export function Knowledge() { const [repos, setRepos] = useState([]); const [docs, setDocs] = useState([]); const [busy, setBusy] = useState(''); const refresh = useCallback(() => Promise.all([listRepositories(), listDocumentation()]).then(([r,d]) => { setRepos(r); setDocs(d); }), []); useEffect(() => { refresh(); }, [refresh]); const action = async (type, fn) => { setBusy(type); try { const result = await fn(); await refresh(); return result; } finally { setBusy(''); } }; return <div><p className="text-sm text-text-secondary">Unified RAG knowledge base</p><h1 className="page-title mt-1">Import knowledge</h1><p className="mt-2 max-w-2xl text-sm text-text-secondary">Bring repositories and public documentation into the same source-aware chat experience as your uploads.</p><div className="mt-7 grid gap-5 lg:grid-cols-2"><SourceSection icon={Github} title="GitHub repository" hint="README, supported code and Markdown files are indexed securely." placeholder="https://github.com/owner/repository" items={repos} busy={busy === 'repo'} onImport={(url) => action('repo', () => importRepository(url))} onDelete={(id) => action('repo', () => deleteRepository(id))}/><SourceSection icon={BookOpen} title="Documentation website" hint="Public pages are extracted through Jina Reader and made searchable." placeholder="https://react.dev" items={docs} busy={busy === 'docs'} onImport={(url) => action('docs', () => importDocumentation(url))} onDelete={(id) => action('docs', () => deleteDocumentation(id))}/></div><div className="mt-5 flex items-center gap-2 text-xs text-text-muted"><LinkIcon size={14}/> Sources stay scoped to your workspace and can be deleted at any time.</div></div>; }
+function SourceSection({ icon: Icon, title, hint, placeholder, items, busy, onImport, onDelete }) {
+  const [url, setUrl] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setError('');
+    setSuccess('');
+    try {
+      const source = await onImport(url);
+      setUrl('');
+      setSuccess(`${source.fullName || source.title || title} is indexed and ready to use in Chat.`);
+    } catch (err) {
+      setError(err.response?.data?.error?.message || err.message);
+    }
+  };
+
+  return (
+    <GlowCard>
+      <div className="flex items-start gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand/15 text-brand-light">
+          <Icon size={20} />
+        </span>
+        <div>
+          <h2 className="font-semibold">{title}</h2>
+          <p className="mt-1 text-sm text-text-secondary">{hint}</p>
+        </div>
+      </div>
+
+      <form onSubmit={submit} className="mt-5 flex gap-2">
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          type="url"
+          required
+          placeholder={placeholder}
+          className="min-w-0 flex-1 rounded-lg border border-white/10 bg-base/60 px-3 py-2 text-sm outline-none focus:border-brand/60"
+        />
+        <Button type="submit" disabled={busy}>
+          {busy ? <LoaderCircle size={16} className="animate-spin" /> : 'Import'}
+        </Button>
+      </form>
+
+      {error && <p className="mt-2 text-xs text-red-300">{error}</p>}
+      {success && <p className="mt-2 text-xs text-accent-emerald">{success}</p>}
+
+      <div className="mt-5 space-y-2">
+        {items.length === 0 ? (
+          <p className="text-sm text-text-muted">Nothing imported yet.</p>
+        ) : (
+          items.map((item) => (
+            <div key={item.id} className="rounded-lg border border-white/[.07] bg-base/40 p-3">
+              <div className="flex items-center gap-3">
+                <Icon size={16} className="shrink-0 text-text-muted" />
+                <a href={item.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-sm hover:text-brand-light">
+                  {item.fullName || item.title}
+                </a>
+                <Button size="sm" variant="ghost" onClick={() => onDelete(item.id)} aria-label={`Delete ${item.fullName || item.title}`}>
+                  <Trash2 size={15} />
+                </Button>
+              </div>
+              {item.analysis && item.analysis.repositorySummary && <AnalysisBlock analysis={item.analysis} />}
+            </div>
+          ))
+        )}
+      </div>
+    </GlowCard>
+  );
+}
+
+export function Knowledge() {
+  const [repos, setRepos] = useState([]);
+  const [docs, setDocs] = useState([]);
+  const [busy, setBusy] = useState('');
+
+  const refresh = useCallback(
+    () => Promise.all([listRepositories(), listDocumentation()]).then(([nextRepos, nextDocs]) => {
+      setRepos(nextRepos);
+      setDocs(nextDocs);
+    }),
+    [],
+  );
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const action = async (type, fn) => {
+    setBusy(type);
+    try {
+      const result = await fn();
+      await refresh();
+      return result;
+    } finally {
+      setBusy('');
+    }
+  };
+
+  return (
+    <div>
+      <p className="text-sm text-text-secondary">Unified RAG knowledge base</p>
+      <h1 className="page-title mt-1">Import knowledge</h1>
+      <p className="mt-2 max-w-2xl text-sm text-text-secondary">Bring repositories and public documentation into the same source-aware chat experience as your uploads.</p>
+
+      <div className="mt-7 grid gap-5 lg:grid-cols-2">
+        <SourceSection
+          icon={Github}
+          title="GitHub repository"
+          hint="README, supported code and Markdown files are indexed securely."
+          placeholder="https://github.com/owner/repository"
+          items={repos}
+          busy={busy === 'repo'}
+          onImport={(url) => action('repo', () => importRepository(url))}
+          onDelete={(id) => action('repo', () => deleteRepository(id))}
+        />
+        <SourceSection
+          icon={BookOpen}
+          title="Documentation website"
+          hint="Public pages are extracted through Jina Reader and made searchable."
+          placeholder="https://react.dev"
+          items={docs}
+          busy={busy === 'docs'}
+          onImport={(url) => action('docs', () => importDocumentation(url))}
+          onDelete={(id) => action('docs', () => deleteDocumentation(id))}
+        />
+      </div>
+
+      <div className="mt-5 flex items-center gap-2 text-xs text-text-muted">
+        <LinkIcon size={14} />
+        Sources stay scoped to your workspace and can be deleted at any time.
+      </div>
+    </div>
+  );
+}

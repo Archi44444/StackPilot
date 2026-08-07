@@ -1,5 +1,7 @@
 import { parseDocument } from '../rag/documentParser.js';
 import { addDocument, listDocuments as listDocs, deleteDocument as deleteDoc } from '../rag/vectorStore.js';
+import { FieldValue } from 'firebase-admin/firestore';
+import { getDb } from '../config/firebaseAdmin.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { AppError } from '../utils/AppError.js';
 import fs from 'fs/promises';
@@ -15,6 +17,7 @@ export const uploadDocument = asyncHandler(async (request, response) => {
     
     // Clean up temporary file
     await fs.unlink(request.file.path).catch(console.error);
+    await getDb().collection('activity').add({ uid: request.user.uid, type: 'document_uploaded', title: `Uploaded ${request.file.originalname}`, createdAt: FieldValue.serverTimestamp() });
     
     response.status(201).json({ data: doc });
   } catch (err) {
@@ -31,5 +34,6 @@ export const listDocuments = asyncHandler(async (request, response) => {
 
 export const deleteDocument = asyncHandler(async (request, response) => {
   await deleteDoc(request.user.uid, request.validated.params.id);
+  await getDb().collection('activity').add({ uid: request.user.uid, type: 'document_deleted', title: `Deleted document ${request.validated.params.id}`, createdAt: FieldValue.serverTimestamp() });
   response.status(204).send();
 });

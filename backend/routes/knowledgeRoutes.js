@@ -3,6 +3,7 @@ import { requireAuth } from '../middleware/authMiddleware.js';
 import { validateRequest } from '../middleware/validateRequest.js';
 import { importDocumentationRequestSchema, importRepositoryRequestSchema, resourceIdRequestSchema, stackOverflowSearchRequestSchema } from '../models/schemas.js';
 import { dashboard, deleteDocs, deleteRepo, importDocs, importRepo, listDocs, listRepos, stackOverflow } from '../controllers/knowledgeController.js';
+import { getAnalyticsCausal } from '../controllers/causalController.js';
 
 export const knowledgeRouter = Router();
 knowledgeRouter.use(requireAuth);
@@ -15,3 +16,4 @@ knowledgeRouter.delete('/docs/:id', validateRequest(resourceIdRequestSchema), de
 knowledgeRouter.get('/stackoverflow/search', validateRequest(stackOverflowSearchRequestSchema), stackOverflow);
 knowledgeRouter.get('/dashboard', dashboard);
 knowledgeRouter.get('/analytics', dashboard);
+knowledgeRouter.get('/analytics/causal', getAnalyticsCausal);

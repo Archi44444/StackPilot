@@ -39,26 +39,41 @@ async function paginate(query, collectionName, { limit, cursor }) {
 }
 
 export async function listConversations(uid, options) {
-  const query = getDb().collection('conversations').where('uid', '==', uid).orderBy('updatedAt', 'desc');
-  return paginate(query, 'conversations', options);
+  // Avoid blocking first use on a composite Firestore index. The user's own
+  // conversation set is bounded here and sorted after retrieval.
+  const { limit: requestedLimit = PAGE_LIMIT, cursor } = options;
+  const snapshot = await getDb().collection('conversations').where('uid', '==', uid).get();
+  const ordered = snapshot.docs
+    .map(documentData)
+    .sort((left, right) => new Date(right.updatedAt || 0).getTime() - new Date(left.updatedAt || 0).getTime());
+  const start = cursor ? Math.max(0, ordered.findIndex((item) => item.id === cursor) + 1) : 0;
+  const size = Math.min(requestedLimit, PAGE_LIMIT);
+  const items = ordered.slice(start, start + size);
+  return { items, nextCursor: ordered.length > start + size ? items.at(-1)?.id ?? null : null };
 }
 
-export async function ensureConversation(uid, conversationId, firstMessage) {
+export async function ensureConversation(uid, conversationId, firstMessage, documentId = null) {
   const database = getDb();
   if (conversationId) {
     const snapshot = await getOwnedDocument('conversations', conversationId, uid);
-    await snapshot.ref.update({ updatedAt: FieldValue.serverTimestamp() });
+    if (documentId && !snapshot.data().documentId) {
+      await snapshot.ref.update({ documentId, updatedAt: FieldValue.serverTimestamp() });
+    } else {
+      await snapshot.ref.update({ updatedAt: FieldValue.serverTimestamp() });
+    }
     return snapshot.id;
   }
   const reference = database.collection('conversations').doc();
   const title = firstMessage.trim().replace(/\s+/g, ' ').slice(0, 72) || 'New conversation';
-  await reference.set({
+  const data = {
     uid,
     title,
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
     messageCount: 0,
-  });
+  };
+  if (documentId) data.documentId = documentId;
+  await reference.set(data);
   return reference.id;
 }
 
@@ -117,6 +132,22 @@ export async function deleteConversation(uid, conversationId) {
     await batch.commit();
   }
   await database.collection('conversations').doc(conversationId).delete();
+}
+
+export async function deleteAllConversations(uid) {
+  const database = getDb();
+  const conversationsQuery = database.collection('conversations').where('uid', '==', uid);
+  while (true) {
+    const conversations = await conversationsQuery.limit(300).get();
+    if (conversations.empty) break;
+    const batch = database.batch();
+    for (const conversation of conversations.docs) {
+      const messages = await database.collection('messages').where('uid', '==', uid).where('conversationId', '==', conversation.id).get();
+      messages.docs.forEach((snapshot) => batch.delete(snapshot.ref));
+      batch.delete(conversation.ref);
+    }
+    await batch.commit();
+  }
 }
 
 export async function createPrompt(uid, input) {

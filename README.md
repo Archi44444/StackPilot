@@ -669,3 +669,29 @@ StackPilot demonstrates
 - Modern SaaS Architecture
 - Production-ready REST API Design
 - AI-Powered Developer Tooling
+
+---
+
+## Causal Analytics — Developer Productivity Experiment
+
+StackPilot includes a **causal-inference demonstration** built on a reproducible synthetic dataset.
+It is clearly labelled *Demo Experiment* throughout the UI and API response, and uses no real StackPilot user telemetry.
+
+### Causal Question
+
+> Does AI assistance reduce developer task completion time?
+
+### Variables
+
+| Role | Variable |
+|---|---|
+| Treatment (T = 1) | AI assistance used |
+| Treatment (T = 0) | No AI assistance (control) |
+| Outcome (Y) | Task completion time (minutes) |
+| Confounders | Task difficulty (1–5), Developer experience (1–10 yrs), Programming language, Task type |
+
+### Methodology
+
+1. **Propensity Score Estimation** — logistic regression with standardised continuous features and L2 regularisation trained with batch gradient descent (1500 epochs, lr = 0.2). Estimates P(T = 1 | confounders).
+2. **Matching** — 1:1 nearest-neighbour matching without replacement, 0.05 caliper on the propensity score. Treated units with no close control neighbour are excluded, improving covariate balance.
+3. **Treatment Effect** — Average Treatment Effect on the Treated (ATT) is computed as the mean within-pair outcome difference over all matched pairs.

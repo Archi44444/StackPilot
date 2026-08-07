@@ -57,5 +57,10 @@ service cloud.firestore {
       allow create: if ownsIncoming();
       allow update: if ownsExisting() && ownsIncoming() && request.resource.data.uid == resource.data.uid;
     }
+    match /tasks/{id} {
+      allow read, delete: if ownsExisting();
+      allow create: if ownsIncoming();
+      allow update: if ownsExisting() && ownsIncoming() && request.resource.data.uid == resource.data.uid;
+    }
   }
 }

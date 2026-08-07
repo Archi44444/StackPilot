@@ -1,7 +1,8 @@
 import { buildInstructions, getAIProvider } from '../services/aiService.js';
 import { env } from '../config/env.js';
 import { getDb } from '../config/firebaseAdmin.js';
-import { createMessage, deleteConversation as deleteConversationRecord, ensureConversation, getRecentMessages, listConversations, listMessages as listMessageRecords } from '../services/firestoreService.js';
+import { FieldValue } from 'firebase-admin/firestore';
+import { createMessage, deleteAllConversations, deleteConversation as deleteConversationRecord, ensureConversation, getRecentMessages, listConversations, listMessages as listMessageRecords } from '../services/firestoreService.js';
 import { getDocument, retrieveRelevantChunks } from '../rag/vectorStore.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { AppError } from '../utils/AppError.js';
@@ -32,25 +33,37 @@ export const streamChat = asyncHandler(async (request, response) => {
   const model = normalizeModel(requestModel || settings.model || (env.ai.provider === 'gemini' ? 'gemini-flash-latest' : (env.ai.openRouterModel || 'openrouter/free')));
   const temperature = requestTemperature ?? settings.temperature ?? 0.3;
 
-  const conversationId = await ensureConversation(uid, requestedConversationId, message);
+  const conversationId = await ensureConversation(uid, requestedConversationId, message, documentId);
   await createMessage({ uid, conversationId, role: 'user', content: message });
   const messages = await getRecentMessages(uid, conversationId);
   
+  // Retrieve documentId from the conversation record if it was not provided in the request
+  let activeDocumentId = documentId;
+  if (!activeDocumentId && conversationId) {
+    try {
+      const conv = await getDb().collection('conversations').doc(conversationId).get();
+      if (conv.exists) {
+        activeDocumentId = conv.data().documentId || null;
+      }
+    } catch { /* use request documentId */ }
+  }
+
   let instructions = buildInstructions(mode);
   let relevantChunks = [];
-  if (documentId) {
-    const document = await getDocument(uid, documentId);
+  if (activeDocumentId) {
+    const document = await getDocument(uid, activeDocumentId);
     if (!document) {
-      throw new AppError('The attached document is unavailable. Please upload it again.', { statusCode: 404, code: 'DOCUMENT_NOT_FOUND' });
+      logger.warn('Attached document not found during chat grounding', { activeDocumentId });
+    } else {
+      // Keep a bounded amount of the exact attachment in the model context. This
+      // makes requests such as "explain this document" reliable even when their
+      // wording has little overlap with the document text.
+      const attachment = document.content.slice(0, 16_000);
+      instructions += `\n\nThe user attached the document "${document.filename}". Use the extracted text below to answer their request. Do not say that you cannot access the document. If the answer is not in this text, say so clearly.\n\n--- Attached document text ---\n${attachment}\n--- End attached document text ---`;
     }
-    // Keep a bounded amount of the exact attachment in the model context. This
-    // makes requests such as "explain this document" reliable even when their
-    // wording has little overlap with the document text.
-    const attachment = document.content.slice(0, 16_000);
-    instructions += `\n\nThe user attached the document "${document.filename}". Use the extracted text below to answer their request. Do not say that you cannot access the document. If the answer is not in this text, say so clearly.\n\n--- Attached document text ---\n${attachment}\n--- End attached document text ---`;
   }
   try {
-    relevantChunks = await retrieveRelevantChunks(uid, message);
+    relevantChunks = await retrieveRelevantChunks(uid, message, 4, activeDocumentId);
     if (relevantChunks && relevantChunks.length > 0) {
       instructions += '\n\nGrounding context. Cite the source title when you use it:\n' + relevantChunks.map(({ content, source }) => `- [${source.title}] ${content}`).join('\n');
     }
@@ -80,6 +93,7 @@ export const streamChat = asyncHandler(async (request, response) => {
       content: assistantContent,
       model,
     });
+    await getDb().collection('activity').add({ uid, type: 'chat_completed', title: `Answered chat ${conversationId}`, createdAt: FieldValue.serverTimestamp() });
     writeEvent(response, 'sources', { sources: [...new Map((relevantChunks || []).map(({ source }) => [source.id, source])).values()] });
     writeEvent(response, 'done', { conversationId, messageId });
   } catch (error) {
@@ -102,5 +116,10 @@ export const listMessages = asyncHandler(async (request, response) => {
 });
 export const deleteConversation = asyncHandler(async (request, response) => {
   await deleteConversationRecord(request.user.uid, request.validated.params.id);
+  response.status(204).send();
+});
+
+export const clearConversationHistory = asyncHandler(async (request, response) => {
+  await deleteAllConversations(request.user.uid);
   response.status(204).send();
 });

@@ -119,12 +119,31 @@ async function generateQueryEmbedding(query) {
   return null;
 }
 
-function keywordSearch(uid, query) {
+function keywordSearch(uid, query, documentId = null) {
   const keywords = query.toLowerCase().split(/\s+/).filter(Boolean);
-  const userDocIds = documents.filter(d => d.uid === uid).map(d => d.id);
-  const userVectors = vectors.filter(v => userDocIds.includes(v.docId));
+  let userDocIds = [];
   
-  const scored = userVectors.map(v => {
+  if (documentId) {
+    userDocIds = [documentId];
+  } else {
+    // Smart heuristic: if query mentions any file name or repository name, search only in those
+    const queryLower = query.toLowerCase();
+    const matchedDocs = documents.filter(
+      (d) =>
+        d.uid === uid &&
+        (queryLower.includes(d.filename.toLowerCase()) ||
+          (d.source?.title && queryLower.includes(d.source.title.toLowerCase())))
+    );
+    if (matchedDocs.length > 0) {
+      userDocIds = matchedDocs.map((d) => d.id);
+    } else {
+      userDocIds = documents.filter((d) => d.uid === uid).map((d) => d.id);
+    }
+  }
+
+  const userVectors = vectors.filter((v) => userDocIds.includes(v.docId));
+  
+  const scored = userVectors.map((v) => {
     let score = 0;
     const content = v.content.toLowerCase();
     for (const kw of keywords) {
@@ -134,25 +153,56 @@ function keywordSearch(uid, query) {
   });
   
   scored.sort((a, b) => b.score - a.score);
-  return scored;
+  return scored.filter((v) => v.score >= 1);
 }
 
-export async function retrieveRelevantChunks(uid, query, topK = 4) {
-  // Try vector search first
-  if (vectors.some(v => v.embedding.length > 0)) {
+export async function retrieveRelevantChunks(uid, query, topK = 4, documentId = null) {
+  let userDocIds = [];
+  
+  if (documentId) {
+    userDocIds = [documentId];
+  } else {
+    // Smart heuristic: if query mentions any file name or repository name, search only in those
+    const queryLower = query.toLowerCase();
+    const matchedDocs = documents.filter(
+      (d) =>
+        d.uid === uid &&
+        (queryLower.includes(d.filename.toLowerCase()) ||
+          (d.source?.title && queryLower.includes(d.source.title.toLowerCase())))
+    );
+    if (matchedDocs.length > 0) {
+      userDocIds = matchedDocs.map((d) => d.id);
+    } else {
+      userDocIds = documents.filter((d) => d.uid === uid).map((d) => d.id);
+    }
+  }
+
+  const userVectors = vectors.filter((v) => userDocIds.includes(v.docId));
+
+  // Try vector search first if embeddings exist
+  if (userVectors.some((v) => v.embedding.length > 0)) {
     try {
       const queryEmbedding = await generateQueryEmbedding(query);
       if (queryEmbedding) {
-        const userDocIds = documents.filter(d => d.uid === uid).map(d => d.id);
-        const userVectors = vectors.filter(v => userDocIds.includes(v.docId));
-        
-        const scored = userVectors.map(v => ({
+        const scored = userVectors.map((v) => ({
           ...v,
           score: cosineSimilarity(queryEmbedding, v.embedding),
         }));
         
         scored.sort((a, b) => b.score - a.score);
-        return scored.slice(0, topK).map(s => ({ content: s.content, source: s.source ?? { id: s.docId, type: 'upload', title: documents.find((d) => d.id === s.docId)?.filename || 'Uploaded document' }, score: s.score }));
+        
+        // Filter out low-similarity chunks (similarity threshold of 0.35)
+        const filtered = scored.filter((v) => v.score >= 0.35);
+        
+        return filtered.slice(0, topK).map((s) => ({
+          content: s.content,
+          source: s.source ?? {
+            id: s.docId,
+            type: 'upload',
+            title: documents.find((d) => d.id === s.docId)?.filename || 'Uploaded document',
+          },
+          score: s.score,
+        }));
       }
     } catch {
       // Fall through to keyword search
@@ -160,6 +210,14 @@ export async function retrieveRelevantChunks(uid, query, topK = 4) {
   }
   
   // Fallback: keyword search
-  const results = keywordSearch(uid, query);
-  return results.slice(0, topK).map(s => ({ content: s.content, source: s.source ?? { id: s.docId, type: 'upload', title: documents.find((d) => d.id === s.docId)?.filename || 'Uploaded document' }, score: s.score }));
+  const results = keywordSearch(uid, query, documentId);
+  return results.slice(0, topK).map((s) => ({
+    content: s.content,
+    source: s.source ?? {
+      id: s.docId,
+      type: 'upload',
+      title: documents.find((d) => d.id === s.docId)?.filename || 'Uploaded document',
+    },
+    score: s.score,
+  }));
 }

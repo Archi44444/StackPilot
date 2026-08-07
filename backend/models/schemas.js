@@ -81,3 +81,16 @@ export const stackOverflowSearchRequestSchema = z.object({
   body: emptyObject, params: emptyObject,
   query: z.object({ q: z.string().trim().min(2).max(500), limit: z.coerce.number().int().min(1).max(10).default(5) }).strict(),
 });
+
+export const taskCreateRequestSchema = z.object({
+  body: z.object({
+    ai_assisted: z.union([z.literal(0), z.literal(1)]),
+    task_difficulty: z.number().int().min(1).max(5),
+    developer_experience: z.number().int().min(1).max(10),
+    language: z.enum(['JavaScript', 'TypeScript', 'Python', 'Go', 'Other']),
+    task_type: z.enum(['bug_fix', 'feature', 'refactor', 'docs', 'other']),
+    completion_time: z.number().positive().max(480),
+  }).strict(),
+  params: emptyObject,
+  query: emptyObject,
+});

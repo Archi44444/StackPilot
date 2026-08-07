@@ -7,6 +7,7 @@ export function useRealtimeSubscription(subscribe, dependencies) {
 
   useEffect(() => {
     if (!subscribe) {
+      setData([]);
       setLoading(false);
       return undefined;
     }

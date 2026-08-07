@@ -12,6 +12,7 @@ import { documentRouter } from './routes/documentRoutes.js';
 import { promptRouter } from './routes/promptRoutes.js';
 import { settingsRouter } from './routes/settingsRoutes.js';
 import { knowledgeRouter } from './routes/knowledgeRoutes.js';
+import { taskRouter } from './routes/taskRoutes.js';
 import { AppError } from './utils/AppError.js';
 import { logger } from './utils/logger.js';
 
@@ -56,6 +57,7 @@ export function createApp() {
   api.use('/prompts', promptRouter);
   api.use('/settings', settingsRouter);
   api.use('/', knowledgeRouter);
+  api.use('/tasks', taskRouter);
   app.use('/api/v1', api);
 
   app.use(notFoundHandler);

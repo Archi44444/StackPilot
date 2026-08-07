@@ -1,5 +1,4 @@
-import { notImplemented } from './notImplemented.js';
-import { getUserProfile, syncUserProfile } from '../services/userService.js';
+import { deleteUserAccount, getUserProfile, syncUserProfile } from '../services/userService.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const syncUser = asyncHandler(async (request, response) => {
@@ -17,4 +16,7 @@ export const getCurrentUser = asyncHandler(async (request, response) => {
   const profile = await getUserProfile(request.user.uid);
   response.status(200).json({ data: profile });
 });
-export const deleteAccount = notImplemented('Account deletion');
+export const deleteAccount = asyncHandler(async (request, response) => {
+  await deleteUserAccount(request.user.uid);
+  response.status(204).send();
+});

@@ -4,6 +4,7 @@ import { getIdToken } from './api.js';
 export const getConversationHistory = (params) => api.get('/chat/history', { params }).then((response) => response.data.data);
 export const getMessages = (conversationId, params) => api.get(`/chat/${conversationId}/messages`, { params }).then((response) => response.data.data);
 export const deleteConversation = (conversationId) => api.delete(`/chat/${conversationId}`);
+export const clearConversationHistory = () => api.delete('/chat/history');
 
 export async function streamChat(payload, { onToken, onDone, onError, onSources }) {
   const token = await getIdToken();

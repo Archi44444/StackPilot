@@ -13,6 +13,45 @@ const asJson = async (response, label) => {
 const headers = () => ({ Accept: 'application/vnd.github+json', ...(env.githubToken ? { Authorization: `Bearer ${env.githubToken}` } : {}) });
 const serialize = (snapshot) => ({ id: snapshot.id, ...snapshot.data(), createdAt: snapshot.data().createdAt?.toDate?.().toISOString?.() ?? null });
 
+function safeJsonParse(text) {
+  try { return JSON.parse(text); } catch { return null; }
+}
+
+function fileExt(path) {
+  return path.includes('.') ? path.split('.').pop().toLowerCase() : '';
+}
+
+function unique(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function buildRepositoryAnalysis(repo, readmeText, contents, files) {
+  const folderNames = unique(files.map((file) => file.path.split('/')[0]).filter((name) => name && name !== '.'));
+  const extensions = unique(files.map((file) => fileExt(file.path)));
+  const packageJson = contents.find((file) => file.name.endsWith('package.json'));
+  const packageData = packageJson ? safeJsonParse(packageJson.text) : null;
+  const dependencies = unique([
+    ...Object.keys(packageData?.dependencies ?? {}),
+    ...Object.keys(packageData?.devDependencies ?? {}),
+    ...Object.keys(packageData?.peerDependencies ?? {}),
+  ]);
+  const readmeHead = readmeText.trim().split(/\n+/).slice(0, 4).join(' ').trim();
+  const secretsFound = contents.some((file) => /api[_-]?key|secret|token|password|private[_-]?key/i.test(file.text));
+
+  return {
+    repositorySummary: repo.description || readmeHead || `${repo.full_name} is a ${repo.language || 'code'} repository with ${files.length} indexed files.`,
+    architectureOverview: folderNames.length ? `Top-level structure: ${folderNames.slice(0, 8).join(', ')}.` : 'No prominent top-level folders detected from the indexed files.',
+    techStack: unique([repo.language, ...extensions.map((ext) => ({ js: 'JavaScript', jsx: 'React', ts: 'TypeScript', tsx: 'React', py: 'Python', go: 'Go', rb: 'Ruby', php: 'PHP', java: 'Java' }[ext]))]).filter(Boolean).join(', ') || 'Could not infer a dominant stack.',
+    dependencies: dependencies.length ? dependencies.slice(0, 25).join(', ') : 'No package manifest or dependency file was detected.',
+    folderExplanation: folderNames.length ? folderNames.map((folder) => `- ${folder}`).join('\n') : 'Flat or minimal repository structure.',
+    securityIssues: secretsFound ? 'Potential credential-like strings were detected in indexed source files. Review and rotate any exposed secrets.' : 'No obvious secret-like strings were detected in the scanned files.',
+    performanceSuggestions: files.length > 40 ? 'Large file count may increase indexing and analysis time. Consider narrowing the import scope or splitting large modules.' : 'Keep imports focused on documentation, entry points, and high-signal source files to speed retrieval.',
+    codeQualityReport: readmeText ? 'README exists and was included in the analysis input. Expand module-level comments and tests where needed.' : 'README is thin or missing from the imported material.',
+    complexityReport: files.length > 30 ? 'Medium-to-high repository breadth. The codebase likely benefits from clearer module boundaries and smaller feature folders.' : 'Low-to-moderate structural complexity from the scanned surface area.',
+    missingReadmeSections: ['Installation', 'Environment variables', 'Usage examples', 'Testing', 'Deployment', 'Contributing', 'License'].filter((section) => !new RegExp(`^##\\s+${section}$`, 'mi').test(readmeText)).join(', '),
+  };
+}
+
 export async function importRepository(uid, url) {
   const match = url.match(githubUrl);
   if (!match) throw new AppError('Enter a valid public GitHub repository URL.', { statusCode: 400, code: 'INVALID_GITHUB_URL' });
@@ -40,8 +79,9 @@ export async function importRepository(uid, url) {
   const reference = getDb().collection('repositories').doc();
   const source = { id: reference.id, type: 'repository', title: repo.full_name, url: repo.html_url, metadata: { description: repo.description, language: repo.language, defaultBranch: repo.default_branch } };
   const text = [`# ${repo.full_name}`, repo.description || '', `## README\n${readmeText}`, ...contents.filter(Boolean).map((file) => `## File: ${file.name}\n${file.text}`)].join('\n\n');
+  const analysis = buildRepositoryAnalysis(repo, readmeText, contents.filter(Boolean), files);
   await addKnowledgeSource(uid, source, text);
-  await reference.set({ uid, fullName: repo.full_name, name: repo.name, url: repo.html_url, description: repo.description || '', language: repo.language || null, stars: repo.stargazers_count, fileCount: files.length, sourceId: source.id, createdAt: FieldValue.serverTimestamp() });
+  await reference.set({ uid, fullName: repo.full_name, name: repo.name, url: repo.html_url, description: repo.description || '', language: repo.language || null, stars: repo.stargazers_count, fileCount: files.length, sourceId: source.id, analysis, createdAt: FieldValue.serverTimestamp() });
   await getDb().collection('activity').add({ uid, type: 'repository_imported', title: `Imported ${repo.full_name}`, createdAt: FieldValue.serverTimestamp() });
   return serialize(await reference.get());
 }
