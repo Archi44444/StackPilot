@@ -94,3 +94,12 @@ export const taskCreateRequestSchema = z.object({
   params: emptyObject,
   query: emptyObject,
 });
+
+export const fineTuneGenerateRequestSchema = z.object({
+  body: z.object({
+    message: z.string().trim().min(1).max(20_000),
+    conversationId: z.string().min(1).max(128).optional(),
+  }).strict(),
+  params: emptyObject,
+  query: emptyObject,
+});

@@ -40,6 +40,8 @@ const rawSchema = z.object({
   GITHUB_TOKEN: z.string().min(1).optional(),
   JINA_API_KEY: z.string().min(1).optional(),
   CHROMA_URL: z.string().url().optional(),
+  HF_MODEL: z.string().default('Qwen/Qwen2.5-0.5B-Instruct'),
+  HF_API_TOKEN: z.string().optional(),
 });
 
 const raw = rawSchema.parse({ ...process.env, FIREBASE_PRIVATE_KEY: recoverMultilinePrivateKey() });
@@ -67,4 +69,6 @@ export const env = Object.freeze({
   githubToken: raw.GITHUB_TOKEN,
   jinaApiKey: raw.JINA_API_KEY,
   chromaUrl: raw.CHROMA_URL,
+  hfModel: raw.HF_MODEL,
+  hfApiToken: raw.HF_API_TOKEN,
 });

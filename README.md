@@ -588,3 +588,40 @@ StackPilot aims to evolve into an **AI-native developer workspace** where engine
 
 Instead of switching between repositories, documentation, PDFs, and search engines, developers can bring their technical context into one intelligent workspace.
 
+---
+
+# 🧠 LLM Fine-Tuning Pipeline
+
+StackPilot includes an optional, domain-adapted **fine-tuning pipeline** for developer assistance. You can train a local model to specialize in code explanation, debugging, and programming concepts, and serve it seamlessly in production.
+
+### Methodology
+1. **Model Selection:** `Qwen/Qwen2.5-0.5B-Instruct` (Apache 2.0, 494M parameters). Optimized for low-compute environments and fast CPU fine-tuning.
+2. **PEFT/LoRA Fine-Tuning:** Applies Low-Rank Adaptation (LoRA) targeting attention projection modules (`q_proj`, `v_proj`) with `r=8` and `alpha=16` (~500K trainable parameters). This adapts the model without full weight updates.
+3. **Domain Dataset:** Curated 60-example developer dataset containing instruction-input-output blocks focusing on Node.js/JavaScript, Python, Java, REST APIs, Git, SQL, Docker, and algorithms.
+4. **Hugging Face Hub Integration:** Once trained locally, the adapter is merged with base weights and pushed to your Hugging Face Hub registry.
+5. **Node.js Production Server:** The production Express API queries the model using the stateless Hugging Face Inference API. This avoids any Python/GPU requirements on the production hosting servers.
+
+### Run Fine-Tuning Locally
+
+1. Install requirements:
+   ```bash
+   cd ml
+   pip install -r requirements.txt
+   ```
+2. Login to Hugging Face:
+   ```bash
+   huggingface-cli login
+   ```
+3. Run training and push to Hugging Face:
+   ```bash
+   python finetune.py --hf-repo YOUR_USERNAME/stackpilot-dev-assistant
+   ```
+4. Run evaluation:
+   ```bash
+   python evaluate_finetuned.py --hf-repo YOUR_USERNAME/stackpilot-dev-assistant
+   ```
+5. Test inference locally:
+   ```bash
+   python fine_tuned_inference.py --question "What is a closure in JavaScript?"
+   ```
+

@@ -4,6 +4,17 @@ dist/
 coverage/
 .vite/
 
+# Python ML and Fine-tuning files
+ml/models/checkpoints/
+ml/models/fine_tuned/
+ml/models/merged/
+ml/data/
+ml/results/*.json
+ml/__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+
 # Environment and credentials
 .env
 .env.*

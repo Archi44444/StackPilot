@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import { useMessages } from '../hooks/useMessages.js';
 import { streamChat } from '../services/chatService.js';
 import { getSettings } from '../services/settingsService.js';
+import { generateFineTuned } from '../services/fineTuneService.js';
 import { uploadDocument } from '../services/documentService.js';
 import { searchStackOverflow } from '../services/knowledgeService.js';
 
@@ -20,6 +21,7 @@ const MODEL_OPTIONS = [
   { value: 'meta-llama/llama-3.3-70b-instruct', label: 'Llama 3.3 70B', provider: 'openrouter' },
   { value: 'google/gemma-2-9b-it', label: 'Gemma 2 9B', provider: 'openrouter' },
   { value: 'mistralai/mistral-7b-instruct', label: 'Mistral 7B', provider: 'openrouter' },
+  { value: 'finetuned/qwen-lora', label: 'Qwen2.5 0.5B (Fine-tuned)', provider: 'finetuned' },
 ];
 
 const prompts = ['Explain an error', 'Review a pull request', 'Generate unit tests', 'Refactor this function'];
@@ -125,12 +127,20 @@ export function Chat() {
     try {
       const stackPromise = includeStackOverflow ? searchStackOverflow(message) : Promise.resolve([]);
       let nextConversationId = conversationId;
-      await streamChat({ conversationId, message, mode: 'chat', model: selectedModel, temperature: selectedTemperature, documentId: attachedDocument?.id }, {
-        onToken: ({ content }) => setStreamedContent((current) => current + content),
-        onDone: ({ conversationId: returnedConversationId }) => { nextConversationId = returnedConversationId || conversationId; completedConversationRef.current = nextConversationId; },
-        onError: (eventError) => setError(eventError.message ?? 'Unable to complete this response.'),
-        onSources: ({ sources: nextSources }) => { pendingSourcesRef.current = nextSources || []; setSources(nextSources || []); },
-      });
+      if (currentModelInfo?.provider === 'finetuned') {
+        const responseData = await generateFineTuned({ message, conversationId });
+        nextConversationId = responseData.conversationId || conversationId;
+        completedConversationRef.current = nextConversationId;
+        pendingSourcesRef.current = responseData.sources || [];
+        setSources(responseData.sources || []);
+      } else {
+        await streamChat({ conversationId, message, mode: 'chat', model: selectedModel, temperature: selectedTemperature, documentId: attachedDocument?.id }, {
+          onToken: ({ content }) => setStreamedContent((current) => current + content),
+          onDone: ({ conversationId: returnedConversationId }) => { nextConversationId = returnedConversationId || conversationId; completedConversationRef.current = nextConversationId; },
+          onError: (eventError) => setError(eventError.message ?? 'Unable to complete this response.'),
+          onSources: ({ sources: nextSources }) => { pendingSourcesRef.current = nextSources || []; setSources(nextSources || []); },
+        });
+      }
       let nextStackAnswers = [];
       try {
         nextStackAnswers = await stackPromise;
@@ -193,6 +203,23 @@ export function Chat() {
                 OpenRouter models
               </p>
               {MODEL_OPTIONS.filter((m) => m.provider === 'openrouter').map((opt) => (
+                <button
+                  key={opt.value}
+                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs transition ${
+                    selectedModel === opt.value
+                      ? 'bg-brand/15 text-brand-light'
+                      : 'text-text-secondary hover:bg-white/[0.05] hover:text-text-primary'
+                  }`}
+                  onClick={() => { setSelectedModel(opt.value); setShowModelPicker(false); }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+              <div className="mx-2 my-1 border-t border-white/[0.06]" />
+              <p className="px-2 pb-1 pt-1 text-[11px] font-medium uppercase tracking-wider text-text-muted">
+                Fine-tuned models
+              </p>
+              {MODEL_OPTIONS.filter((m) => m.provider === 'finetuned').map((opt) => (
                 <button
                   key={opt.value}
                   className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-xs transition ${

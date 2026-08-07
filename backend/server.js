@@ -3,6 +3,11 @@ import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { logger } from './utils/logger.js';
 
+if (env.nodeEnv === 'development') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+  logger.info('Strict TLS verification disabled for local development environment.');
+}
+
 const app = createApp();
 
 const server = app.listen(env.port, () => {

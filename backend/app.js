@@ -13,6 +13,7 @@ import { promptRouter } from './routes/promptRoutes.js';
 import { settingsRouter } from './routes/settingsRoutes.js';
 import { knowledgeRouter } from './routes/knowledgeRoutes.js';
 import { taskRouter } from './routes/taskRoutes.js';
+import { fineTuneRouter } from './routes/fineTuneRoutes.js';
 import { AppError } from './utils/AppError.js';
 import { logger } from './utils/logger.js';
 
@@ -58,6 +59,7 @@ export function createApp() {
   api.use('/settings', settingsRouter);
   api.use('/', knowledgeRouter);
   api.use('/tasks', taskRouter);
+  api.use('/fine-tune', fineTuneRouter);
   app.use('/api/v1', api);
 
   app.use(notFoundHandler);
