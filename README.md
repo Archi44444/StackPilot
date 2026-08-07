@@ -1,364 +1,369 @@
 # 🚀 StackPilot
-### AI-Powered Developer Copilot with Retrieval-Augmented Generation (RAG)
 
-StackPilot is a full-stack AI developer assistant that enables developers to chat with GitHub repositories, technical documentation, PDFs, Markdown files, and codebases using Retrieval-Augmented Generation (RAG).
+### AI-Powered Developer Copilot for Codebases, Documentation & Technical Knowledge
 
-The platform combines semantic search, vector embeddings, repository indexing, documentation ingestion, and LLM-powered reasoning to provide accurate, context-aware coding assistance with verifiable source citations.
+**StackPilot** is a full-stack AI developer workspace that lets developers interact with GitHub repositories, technical documentation, PDFs, Markdown files, and codebases using natural language.
 
----
+It combines **Retrieval-Augmented Generation (RAG)**, vector embeddings, semantic search, repository indexing, and LLM-powered reasoning to provide **context-aware, grounded, and source-cited answers**.
 
-# 🌐 Live Demo
-
-Try StackPilot at: https://stack-pilot-jet.vercel.app
+> 💡 **Live Demo:** https://stack-pilot-jet.vercel.app
 
 ---
 
-# 🚀 Core Objectives
+## ✨ Why StackPilot?
 
-- Chat with GitHub repositories using AI
-- Import and index technical documentation
-- Upload PDFs and Markdown files for semantic search
-- Build a unified developer knowledge base
-- Provide source-cited AI responses
-- Reduce developer context switching
-- Improve onboarding for unfamiliar codebases
-- Deliver context-aware coding assistance
+Understanding an unfamiliar codebase often means jumping between source files, documentation, GitHub issues, and search engines.
 
----
+StackPilot brings these resources into one AI-powered workspace.
 
-# 🏗️ System Architecture
+You can ask questions such as:
 
-```
-React + Vite + Tailwind
-          │
-          ▼
-Firebase Authentication
-          │
-          ▼
-Node.js + Express Backend
-          │
-          ├── LangChain.js
-          ├── Gemini API
-          ├── OpenRouter API
-          ├── GitHub REST API
-          ├── Jina AI Reader
-          ├── ChromaDB
-          └── Firestore
-```
+* 🧠 *"Explain this project."*
+* 🔍 *"Where is authentication implemented?"*
+* 📁 *"Explain the folder structure."*
+* ⚙️ *"How does this function work?"*
+* 📚 *"Summarize this documentation."*
+* 🚀 *"Generate an onboarding guide for this repository."*
+* 🛠️ *"Suggest improvements to this implementation."*
+
+Responses are grounded in retrieved project context and can include **source citations** for verification.
 
 ---
 
-# 🖥️ Frontend
+# 🌟 Key Features
 
-Located in
+### 🤖 AI Developer Chat
 
-```
-frontend/
-```
+Ask natural-language questions about your imported repositories, documentation, and uploaded knowledge sources.
 
-## Tech Stack
+### 🐙 GitHub Repository Intelligence
 
-- React.js
-- Vite
-- Tailwind CSS
-- Framer Motion
-- Firebase Authentication
-- React Router
-- Axios
+Import public GitHub repositories and analyze:
 
----
+* Repository metadata
+* README files
+* Folder structures
+* Source files
+* Documentation
+* Code context
 
-# ✨ Features
+### 📚 Documentation Intelligence
 
-## AI Chat
+Import technical documentation and convert it into a searchable knowledge base.
 
-Developers can ask
+Supports documentation for technologies such as:
 
-- Explain this project
-- Explain this function
-- Find where authentication is implemented
-- Summarize this repository
-- Explain folder structure
-- Generate onboarding guide
-- Explain dependencies
-- Suggest improvements
+* React
+* Next.js
+* Node.js
+* Express
+* Firebase
+* Tailwind CSS
+* FastAPI
+* LangChain
+* Python
+* And other developer documentation
 
----
+### 📄 PDF & Markdown Knowledge Base
 
-## GitHub Repository Import
+Upload technical resources including:
 
-Supports
+* Research papers
+* API documentation
+* Technical books
+* Manuals
+* Notes
+* Markdown files
 
-- Public repositories
-- README extraction
-- Folder structure analysis
-- Documentation indexing
-- Semantic repository search
+Content is processed, embedded, and made available for semantic retrieval.
 
----
+### 🔎 Semantic Search
 
-## Documentation Import
+Instead of relying only on keyword matching, StackPilot retrieves context based on the **semantic meaning of a user's query**.
 
-Import documentation websites including
+### 📌 Source-Cited Responses
 
-- React
-- Next.js
-- Express
-- Node.js
-- Tailwind CSS
-- Firebase
-- FastAPI
-- LangChain
-- Python Docs
-- Any developer documentation
+Retrieved context is passed to the LLM so that responses remain grounded in the indexed knowledge base and can reference relevant sources.
 
----
+### 📝 Prompt Library
 
-## PDF Knowledge Base
+Save and manage reusable developer prompts.
 
-Upload
+* Create prompts
+* Edit prompts
+* Delete prompts
+* Reuse prompts across conversations
 
-- Technical books
-- Research papers
-- API documentation
-- User manuals
-- Notes
+### 💬 Conversation History
 
-Search using semantic retrieval.
+Persist:
 
----
+* Conversations
+* AI responses
+* Repository-specific chats
+* Retrieved sources
+* Message history
 
-## Prompt Library
+### 📊 Developer Dashboard
 
-Users can
+View:
 
-- Save prompts
-- Edit prompts
-- Delete prompts
-- Organize reusable developer prompts
+* Imported repositories
+* Indexed documentation
+* Uploaded files
+* Recent conversations
+* Prompt library
+* Storage information
+* AI usage analytics
 
 ---
 
-## Conversation History
+# 🧠 RAG Architecture
 
-Store
+StackPilot uses a Retrieval-Augmented Generation pipeline to provide context-aware responses.
 
-- Previous chats
-- AI responses
-- Source citations
-- Repository-specific conversations
-
----
-
-# 👨‍💻 Developer Workflow
-
-```
-Login
-    │
-    ▼
-Dashboard
-    │
-    ▼
-Import Repository
-    │
-    ▼
-Index Documentation
-    │
-    ▼
-Generate Embeddings
-    │
-    ▼
-Store in ChromaDB
-    │
-    ▼
-Chat with AI
-    │
-    ▼
-Receive Source-Cited Response
+```text
+             User Query
+                 │
+                 ▼
+        Query Processing
+                 │
+                 ▼
+        Semantic Retrieval
+                 │
+                 ▼
+          ChromaDB Search
+                 │
+                 ▼
+       Relevant Context
+                 │
+                 ▼
+        Prompt Construction
+                 │
+                 ▼
+       Gemini / OpenRouter
+                 │
+                 ▼
+       Grounded AI Response
+                 │
+                 ▼
+          Source Citations
 ```
 
----
+### Knowledge Ingestion Pipeline
 
-# ⚙️ Backend
-
-Located in
-
-```
-backend/
-```
-
----
-
-# 🔹 Core Components
-
-## 1️⃣ GitHub Service
-
-Responsible for
-
-- Repository import
-- README extraction
-- File tree retrieval
-- Repository metadata
-- Code indexing
-
-Uses
-
-- GitHub REST API
-
----
-
-## 2️⃣ Documentation Service
-
-Responsible for
-
-- Documentation crawling
-- Content extraction
-- Text preprocessing
-
-Uses
-
-- Jina AI Reader API
-
----
-
-## 3️⃣ RAG Pipeline
-
-Workflow
-
-```
-User Query
-      │
-      ▼
-Vector Search
-      │
-      ▼
-Relevant Context Retrieval
-      │
-      ▼
-Prompt Construction
-      │
-      ▼
-Gemini / OpenRouter
-      │
-      ▼
-Grounded AI Response
-```
-
----
-
-## 4️⃣ Vector Database
-
-Uses ChromaDB for
-
-- Semantic search
-- Embedding storage
-- Similarity search
-- Context retrieval
-
----
-
-## 5️⃣ AI Service
-
-Supports
-
-- Gemini API
-- OpenRouter Models
-
-Handles
-
-- Prompt engineering
-- Context injection
-- Response formatting
-- Source citation generation
-
----
-
-## 6️⃣ Authentication
-
-Managed using Firebase Authentication.
-
-Supports
-
-- Google Sign-In
-- Secure token verification
-- Protected API routes
-
----
-
-# 🔐 Authentication Flow
-
-```
-User Login
-      │
-      ▼
-Firebase Authentication
-      │
-      ▼
-JWT Verification
-      │
-      ▼
-Express Middleware
-      │
-      ▼
-Protected APIs
-```
-
----
-
-# 🧠 RAG Workflow
-
-```
-Repository
+```text
+GitHub Repository
 Documentation
-PDF
-Markdown
-        │
-        ▼
-Chunking
-        │
-        ▼
+PDF / Markdown
+       │
+       ▼
+Content Extraction
+       │
+       ▼
+Text Chunking
+       │
+       ▼
 Embedding Generation
-        │
-        ▼
-ChromaDB
-        │
-        ▼
+       │
+       ▼
+     ChromaDB
+       │
+       ▼
 Semantic Retrieval
-        │
-        ▼
-Gemini / OpenRouter
-        │
-        ▼
-Grounded AI Response
+       │
+       ▼
+LLM Context Injection
 ```
 
 ---
 
-# 🗄️ Firestore Collections
+# 🧩 System Architecture
 
-```
-users/
-
-repositories/
-
-documents/
-
-conversations/
-
-messages/
-
-prompts/
-
-analytics/
-
-settings/
+```text
+┌──────────────────────────────┐
+│        React + Vite          │
+│       Tailwind CSS           │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│    Firebase Authentication   │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│      Node.js + Express       │
+└──────────────┬───────────────┘
+               │
+       ┌───────┼────────┬────────────┐
+       ▼       ▼        ▼            ▼
+   GitHub    Jina AI  LangChain   AI Services
+     API      Reader     .js      Gemini/OpenRouter
+       │        │         │            │
+       └────────┴─────────┴────────────┘
+                         │
+                         ▼
+                    ChromaDB
+                         │
+                         ▼
+                    Firestore
 ```
 
 ---
 
-# 📁 Project Structure
+# 🧪 Causal Analytics — Developer Productivity Experiment
 
+StackPilot also includes a **causal-inference demonstration** designed to estimate whether AI assistance affects developer task completion time.
+
+> ⚠️ **Demo Experiment:** This experiment uses a reproducible synthetic dataset and does **not** use real StackPilot user telemetry.
+
+### Causal Question
+
+> **Does AI assistance reduce developer task completion time?**
+
+### Variables
+
+| Variable             | Role                |
+| -------------------- | ------------------- |
+| AI Assistance        | Treatment (`T = 1`) |
+| No AI Assistance     | Control (`T = 0`)   |
+| Task Completion Time | Outcome (`Y`)       |
+| Task Difficulty      | Confounder          |
+| Developer Experience | Confounder          |
+| Programming Language | Confounder          |
+| Task Type            | Confounder          |
+
+### Methodology
+
+#### 1. Propensity Score Estimation
+
+A logistic regression model estimates:
+
+```text
+P(T = 1 | Confounders)
 ```
+
+The model uses:
+
+* Standardised continuous features
+* L2 regularisation
+* Batch gradient descent
+* 1,500 training epochs
+* Learning rate = `0.2`
+
+#### 2. Propensity Score Matching
+
+Treated and control observations are matched using:
+
+* **1:1 nearest-neighbour matching**
+* **Without replacement**
+* **0.05 propensity-score caliper**
+
+Observations without a sufficiently close control match are excluded to improve covariate balance.
+
+#### 3. Treatment Effect
+
+The experiment estimates the:
+
+### Average Treatment Effect on the Treated — ATT
+
+```text
+ATT = Mean(Y_treated − Y_matched_control)
+```
+
+The estimate represents the average difference in task completion time between AI-assisted developers and comparable matched developers in the synthetic experiment.
+
+---
+
+# 🔐 Authentication & Security
+
+StackPilot uses Firebase Authentication and protected Express API routes.
+
+### Authentication Flow
+
+```text
+User Login
+    │
+    ▼
+Firebase Authentication
+    │
+    ▼
+Authentication Token
+    │
+    ▼
+Express Middleware
+    │
+    ▼
+Token Verification
+    │
+    ▼
+Protected API Routes
+```
+
+Security measures include:
+
+* Firebase Authentication
+* Protected API routes
+* Token verification
+* Input validation
+* Rate limiting
+* CORS protection
+* Environment-based secrets
+
+---
+
+# 🛠️ Tech Stack
+
+## Frontend
+
+* React.js
+* Vite
+* Tailwind CSS
+* Framer Motion
+* React Router
+* Axios
+* Firebase Authentication
+
+## Backend
+
+* Node.js
+* Express.js
+* LangChain.js
+
+## AI / ML
+
+* Retrieval-Augmented Generation (RAG)
+* Gemini API
+* OpenRouter
+* Vector Embeddings
+* Semantic Search
+* Propensity Score Matching
+* Logistic Regression
+* Causal Inference
+
+## Databases
+
+* Firebase Firestore
+* ChromaDB
+
+## External APIs
+
+* GitHub REST API
+* Jina AI Reader API
+
+## Deployment
+
+* Vercel — Frontend
+* Render — Backend
+* Firebase — Authentication & Firestore
+* ChromaDB — Vector Storage
+
+---
+
+# 📂 Project Structure
+
+```text
 StackPilot/
 │
 ├── backend/
@@ -366,11 +371,11 @@ StackPilot/
 │   ├── routes/
 │   ├── middleware/
 │   ├── services/
-│   │     ├── githubService.js
-│   │     ├── ragService.js
-│   │     ├── jinaService.js
-│   │     ├── embeddingService.js
-│   │     └── aiService.js
+│   │   ├── githubService.js
+│   │   ├── ragService.js
+│   │   ├── jinaService.js
+│   │   ├── embeddingService.js
+│   │   └── aiService.js
 │   ├── firebase/
 │   ├── utils/
 │   ├── config/
@@ -379,319 +384,207 @@ StackPilot/
 │
 ├── frontend/
 │   ├── src/
-│   │    ├── components/
-│   │    ├── pages/
-│   │    ├── hooks/
-│   │    ├── context/
-│   │    ├── services/
-│   │    └── utils/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── hooks/
+│   │   ├── context/
+│   │   ├── services/
+│   │   └── utils/
+│   └── package.json
 │
 └── README.md
 ```
 
 ---
 
-# 📊 Dashboard
+# 🔌 REST API
 
-Displays
+### Authentication
 
-- Imported repositories
-- Indexed documentation
-- Uploaded PDFs
-- Recent conversations
-- Prompt library
-- Storage statistics
-- AI usage analytics
-
----
-
-# 🔥 REST API
-
-## Authentication
-
-```
+```http
 POST /api/v1/auth/sync
-
-GET /api/v1/auth/profile
+GET  /api/v1/auth/profile
 ```
 
----
+### Repositories
 
-## Repository
-
-```
-POST /api/v1/repositories/import
-
-GET /api/v1/repositories
-
+```http
+POST   /api/v1/repositories/import
+GET    /api/v1/repositories
 DELETE /api/v1/repositories/:id
 ```
 
----
+### Documentation
 
-## Documentation
-
-```
-POST /api/v1/docs/import
-
-GET /api/v1/docs
-
+```http
+POST   /api/v1/docs/import
+GET    /api/v1/docs
 DELETE /api/v1/docs/:id
 ```
 
----
+### File Upload
 
-## Upload
-
-```
+```http
 POST /api/v1/upload
 ```
 
----
+### AI Chat
 
-## AI Chat
-
-```
+```http
 POST /api/v1/chat
 ```
 
----
+### Analytics
 
-## Analytics
-
-```
+```http
 GET /api/v1/dashboard
-
 GET /api/v1/analytics
 ```
 
 ---
 
-# 🛡️ Security
+# 🚀 Getting Started
 
-StackPilot implements
+## 1. Clone the Repository
 
-- Firebase Authentication
-- Protected routes
-- Input validation
-- Secure environment variables
-- Rate limiting
-- CORS protection
+```bash
+git clone https://github.com/<your-username>/StackPilot.git
+cd StackPilot
+```
+
+## 2. Backend Setup
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+## 3. Frontend Setup
+
+Open another terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
 ---
 
-# ⚙️ Environment Variables
+# 🔑 Environment Variables
 
-## Backend
+### Backend
 
+Create:
+
+```text
+backend/.env
 ```
+
+```env
 PORT=
 
 GEMINI_API_KEY=
-
 OPENROUTER_API_KEY=
-
 GITHUB_TOKEN=
 
 FIREBASE_PROJECT_ID=
-
 FIREBASE_CLIENT_EMAIL=
-
 FIREBASE_PRIVATE_KEY=
 ```
 
----
+### Frontend
 
-## Frontend
+Create:
 
+```text
+frontend/.env
 ```
+
+```env
 VITE_FIREBASE_API_KEY=
-
 VITE_FIREBASE_AUTH_DOMAIN=
-
 VITE_FIREBASE_PROJECT_ID=
-
 VITE_FIREBASE_STORAGE_BUCKET=
-
 VITE_FIREBASE_APP_ID=
 
 VITE_BACKEND_URL=
 ```
 
----
-
-# 🛠️ Installation
-
-## Backend
-
-```
-cd backend
-
-npm install
-
-npm run dev
-```
+> Never commit API keys, Firebase credentials, private keys, or other secrets to GitHub.
 
 ---
 
-## Frontend
+# 🌐 Deployment
 
-```
-cd frontend
-
-npm install
-
-npm run dev
-```
-
----
-
-# 🚀 Deployment
-
-Frontend
-
-- Vercel
-
-Backend
-
-- Render
-
-Authentication
-
-- Firebase Authentication
-
-Database
-
-- Firebase Firestore
-
-Vector Database
-
-- ChromaDB
-
-AI Models
-
-- Gemini API
-- OpenRouter API
+| Component            | Platform                |
+| -------------------- | ----------------------- |
+| Frontend             | Vercel                  |
+| Backend              | Render                  |
+| Authentication       | Firebase Authentication |
+| Application Database | Firestore               |
+| Vector Database      | ChromaDB                |
+| LLM                  | Gemini / OpenRouter     |
 
 ---
 
-# 🧰 Tech Stack
+# 🔮 Future Improvements
 
-### Frontend
+Planned improvements include:
 
-- React.js
-- Vite
-- Tailwind CSS
-- Framer Motion
-
-### Backend
-
-- Node.js
-- Express.js
-
-### Database
-
-- Firebase Firestore
-- ChromaDB
-
-### AI
-
-- Retrieval-Augmented Generation (RAG)
-- Gemini API
-- OpenRouter API
-- Vector Embeddings
-- Semantic Search
-
-### APIs
-
-- GitHub REST API
-- Jina AI Reader API
-
-### Authentication
-
-- Firebase Authentication
-
-### Tools
-
-- Git
-- GitHub
-- Postman
-- Vercel
-- Render
+* 🔒 Private GitHub repository support
+* 🔑 GitHub OAuth
+* 🧩 VS Code extension
+* 🔗 Multi-repository conversations
+* 🕸️ Repository dependency graphs
+* 🧪 Secure code execution sandbox
+* 👥 Team workspaces
+* 📈 Model benchmarking
+* 🔍 AI-powered code review
+* 🔀 Pull request summarization
+* 🧠 More advanced causal experiments
 
 ---
 
-# 📈 Future Improvements
+# 🎯 What This Project Demonstrates
 
-- Private GitHub repository support
-- GitHub OAuth
-- VS Code Extension
-- Multi-repository chat
-- Repository dependency graphs
-- Code execution sandbox
-- Team workspaces
-- Model benchmarking
-- AI code review
-- Pull request summarization
+StackPilot combines several areas of modern software engineering and AI:
 
----
-
-# 🎯 Vision
-
-StackPilot aims to become an AI-native developer workspace where engineers can interact with repositories, documentation, and technical resources through natural language while receiving accurate, grounded, and source-cited responses.
+* Full-stack application development
+* REST API design
+* RAG architecture
+* Vector databases
+* Semantic search
+* LLM integration
+* AI-powered developer tooling
+* GitHub API integration
+* Documentation ingestion
+* Firebase authentication
+* Cloud deployment
+* Causal inference
+* Propensity score matching
+* Production-oriented backend architecture
 
 ---
 
 # 📜 License
 
-MIT License
+This project is licensed under the **MIT License**.
 
 ---
 
 # ⚠️ Disclaimer
 
-StackPilot is intended as an AI-assisted developer productivity tool. AI-generated responses should be reviewed and verified before use in production environments.
+StackPilot is an AI-assisted developer productivity tool.
+
+AI-generated responses may contain errors and should be reviewed and verified before being used in production systems.
 
 ---
 
-# ⭐ Final Thought
+## 🚀 Vision
 
-StackPilot demonstrates
+StackPilot aims to evolve into an **AI-native developer workspace** where engineers can understand, search, and interact with entire software projects through natural language.
 
-- Full-Stack Web Development
-- Retrieval-Augmented Generation (RAG)
-- Vector Database Design
-- Semantic Search
-- GitHub API Integration
-- Documentation Indexing
-- LLM Integration
-- Firebase Authentication
-- Modern SaaS Architecture
-- Production-ready REST API Design
-- AI-Powered Developer Tooling
+Instead of switching between repositories, documentation, PDFs, and search engines, developers can bring their technical context into one intelligent workspace.
 
----
-
-## Causal Analytics � Developer Productivity Experiment
-
-StackPilot includes a **causal-inference demonstration** built on a reproducible synthetic dataset.
-It is clearly labelled *Demo Experiment* throughout the UI and API response, and uses no real StackPilot user telemetry.
-
-### Causal Question
-
-> Does AI assistance reduce developer task completion time?
-
-### Variables
-
-| Role | Variable |
-|---|---|
-| Treatment (T = 1) | AI assistance used |
-| Treatment (T = 0) | No AI assistance (control) |
-| Outcome (Y) | Task completion time (minutes) |
-| Confounders | Task difficulty (1�5), Developer experience (1�10 yrs), Programming language, Task type |
-
-### Methodology
-
-1. **Propensity Score Estimation** � logistic regression with standardised continuous features and L2 regularisation trained with batch gradient descent (1500 epochs, lr = 0.2). Estimates P(T = 1 | confounders).
-2. **Matching** � 1:1 nearest-neighbour matching without replacement, 0.05 caliper on the propensity score. Treated units with no close control neighbour are excluded, improving covariate balance.
-3. **Treatment Effect** � Average Treatment Effect on the Treated (ATT) is computed as the mean within-pair outcome difference over all matched pairs.
