@@ -592,36 +592,97 @@ Instead of switching between repositories, documentation, PDFs, and search engin
 
 # 🧠 LLM Fine-Tuning Pipeline
 
-StackPilot includes an optional, domain-adapted **fine-tuning pipeline** for developer assistance. You can train a local model to specialize in code explanation, debugging, and programming concepts, and serve it seamlessly in production.
+StackPilot includes a fully working, domain-adapted **fine-tuning pipeline** for developer assistance. You can train a small language model locally to specialise in code explanation, debugging, and programming concepts — and serve it directly from the Node.js backend via a Python subprocess.
+
+> 🖥️ **This feature runs entirely on your local machine — no GPU or cloud compute required.**
+> Model weights are not stored in this repository (they are gitignored). You must run fine-tuning once to generate them.
+
+---
+
+### How It Works
+
+```text
+User Question
+     │
+     ▼
+Node.js Backend (Express)
+     │  spawns subprocess
+     ▼
+ml/infer.py (Python)
+     │  loads model from ml/models/merged/
+     ▼
+Qwen2.5-0.5B Fine-Tuned Model
+     │  generates answer
+     ▼
+JSON response → Node.js → Frontend
+```
+
+The backend spawns `ml/infer.py` as a child process for each inference request. The Python script loads the merged fine-tuned model from disk, generates a response, and returns clean JSON (`{"answer": "..."}`).
+
+> **In production (Render/Vercel):** The Qwen model selector returns an informative message explaining that this feature requires a local setup. All other models (Gemini etc.) continue to work normally in production.
+
+---
 
 ### Methodology
-1. **Model Selection:** `Qwen/Qwen2.5-0.5B-Instruct` (Apache 2.0, 494M parameters). Optimized for low-compute environments and fast CPU fine-tuning.
-2. **PEFT/LoRA Fine-Tuning:** Applies Low-Rank Adaptation (LoRA) targeting attention projection modules (`q_proj`, `v_proj`) with `r=8` and `alpha=16` (~500K trainable parameters). This adapts the model without full weight updates.
-3. **Domain Dataset:** Curated 60-example developer dataset containing instruction-input-output blocks focusing on Node.js/JavaScript, Python, Java, REST APIs, Git, SQL, Docker, and algorithms.
-4. **Hugging Face Hub Integration:** Once trained locally, the adapter is merged with base weights and pushed to your Hugging Face Hub registry.
-5. **Node.js Production Server:** The production Express API queries the model using the stateless Hugging Face Inference API. This avoids any Python/GPU requirements on the production hosting servers.
 
-### Run Fine-Tuning Locally
+| Step | Detail |
+|------|--------|
+| **Base model** | `Qwen/Qwen2.5-0.5B-Instruct` — Apache 2.0, 494M parameters, optimised for CPU |
+| **Fine-tuning method** | LoRA/PEFT — targets `q_proj` and `v_proj` attention modules (`r=8`, `alpha=16`) |
+| **Training data** | 60-example curated developer Q&A dataset (Node.js, Python, Java, REST, Git, SQL, Docker, algorithms) |
+| **Merge** | LoRA adapter merged with base weights into `ml/models/merged/` |
+| **Inference** | Local Python subprocess spawned by Node.js — no GPU, no cloud API needed |
 
-1. Install requirements:
-   ```bash
-   cd ml
-   pip install -r requirements.txt
-   ```
-2. Login to Hugging Face:
-   ```bash
-   huggingface-cli login
-   ```
-3. Run training and push to Hugging Face:
-   ```bash
-   python finetune.py --hf-repo YOUR_USERNAME/stackpilot-dev-assistant
-   ```
-4. Run evaluation:
-   ```bash
-   python evaluate_finetuned.py --hf-repo YOUR_USERNAME/stackpilot-dev-assistant
-   ```
-5. Test inference locally:
-   ```bash
-   python fine_tuned_inference.py --question "What is a closure in JavaScript?"
-   ```
+---
 
+### Run Fine-Tuning Locally (after cloning from GitHub)
+
+**Prerequisites:** Python 3.10+, pip
+
+**Step 1 — Install Python dependencies:**
+```bash
+cd ml
+pip install -r requirements.txt
+```
+
+**Step 2 — Run fine-tuning (trains locally and saves to `ml/models/`):**
+```bash
+python finetune.py
+```
+
+> This takes ~10–30 minutes on CPU. The merged model is saved to `ml/models/merged/`.
+> Optionally push to Hugging Face Hub: `python finetune.py --hf-repo YOUR_USERNAME/stackpilot-dev-assistant`
+
+**Step 3 — Evaluate the model:**
+```bash
+python evaluate_finetuned.py
+```
+
+**Step 4 — Test inference directly:**
+```bash
+python infer.py --question "What is a closure in JavaScript?"
+```
+
+**Step 5 — Run the full stack:**
+```bash
+# Terminal 1
+cd backend && npm run dev
+
+# Terminal 2
+cd frontend && npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173), select **Qwen2.5 0.5B (Fine-tuned)** in the model dropdown, and ask a developer question.
+
+> ⏱️ **First request takes ~30–60 seconds** (model loading from disk). Subsequent requests are faster.
+
+---
+
+### Required Environment Variable (backend/.env)
+
+No extra variables are needed for local inference. The backend automatically uses the local subprocess when `NODE_ENV=development`.
+
+```env
+# Optional: set this if you host the inference server externally
+HF_SPACE_URL=
+```
